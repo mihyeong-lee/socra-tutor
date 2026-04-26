@@ -34,7 +34,7 @@ ${analysis.isMultipleChoice ? `보기: ${analysis.choices.join(" / ")}` : "주�
         content: [
           {
             type: "image",
-            source: { type: "base64", media_type: mediaType, data: imageBase64 },
+            source: { type: "base64", media_type: mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp", data: imageBase64 },
           },
           { type: "text", text: userPrompt },
         ],

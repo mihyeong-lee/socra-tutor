@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         content: [
           {
             type: "image",
-            source: { type: "base64", media_type: mediaType, data: imageBase64 },
+            source: { type: "base64", media_type: mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp", data: imageBase64 },
           },
           { type: "text", text: "이 문제를 분석해줘." },
         ],
