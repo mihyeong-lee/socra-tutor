@@ -21,13 +21,14 @@ export async function POST(req: NextRequest) {
 문제 요약: ${analysis.problemSummary}
 ${analysis.isMultipleChoice ? `보기: ${analysis.choices.join(" / ")}` : "주관식 문제"}
 
-위 정보를 기반으로 3단계 튜터링 플로우를 생성해줘.
-해설지(masterSolution)를 먼저 완성하고, 그걸 기반으로 각 레벨 step을 만들어줘.
+위 정보를 기반으로 튜터링 플로우를 생성해줘.
+해설지(masterSolution)를 먼저 완성하고, 그걸 기반으로 각 레벨의 step을 만들어줘.
+step 수는 문제 복잡도와 레벨에 맞게 자유롭게 결정해 (2~10개).
 `.trim();
 
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: GENERATE_SYSTEM,
       messages: [{
         role: "user",
