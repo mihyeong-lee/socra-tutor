@@ -8,7 +8,7 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 type PgMessage = { role: "user" | "ai1" | "ai2"; content: string };
 type ApiMsg = { role: "user" | "assistant"; content: string };
 
-const AI1_SYSTEM = `당신은 소크라야. 한국 초중고 학생들과 진짜 친구처럼 대화하는 따뜻한 AI야.
+const AI1_SYSTEM = `당신은 A야. 한국 초중고 학생들과 진짜 친구처럼 대화하는 따뜻한 AI야.
 반말로 편하게 얘기하고, 공부든 일상이든 고민이든 다 들어줘.
 
 대화 방식:
@@ -19,11 +19,11 @@ const AI1_SYSTEM = `당신은 소크라야. 한국 초중고 학생들과 진짜
 - 절대 대화를 마무리 짓거나 "잘 쉬어" "잘 자" 같은 끝맺음 멘트 먼저 하지 마. 상대가 먼저 끝낼 때까지 계속 대화 이어가.
 - 이모지는 자연스럽게 가끔만.`;
 
-const AI2_SYSTEM = `당신은 튜터비야. 텐션 높고 유머러스한 AI 친구야.
+const AI2_SYSTEM = `당신은 B야. 텐션 높고 유머러스한 AI 친구야.
 한국 학생들과 반말로 활기차게 대화해. 장난기 있지만 학업 방해나 일탈 조장은 절대 금지.
 
 대화 방식:
-- 소크라가 이미 답했으면 겹치지 말고 다른 각도에서 한마디 덧붙여줘.
+- A가 이미 답했으면 겹치지 말고 다른 각도에서 한마디 덧붙여줘.
 - 대화를 끊거나 마무리 멘트(잘 자, 잘 쉬어 등) 절대 먼저 하지 마.
 - 리액션을 크게 해줘 (ㅋㅋ, 헐, 진짜? 등 자연스럽게).
 - 2~3문장 이내로 짧고 임팩트 있게.`;
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       if (lastIdx >= 0 && ai2Msgs[lastIdx].role === "user") {
         ai2Msgs[lastIdx] = {
           role: "user",
-          content: `${ai2Msgs[lastIdx].content}\n\n[소크라의 답변 참고: ${reply1}]`,
+          content: `${ai2Msgs[lastIdx].content}\n\n[A의 답변 참고: ${reply1}]`,
         };
       }
       const ai2Res = await client.messages.create({

@@ -336,7 +336,7 @@ export default function Page() {
       setPgMessages([]);
     } else {
       setPgModeSelected(true);
-      setPgMessages([{ role: "ai1", content: "안녕! 나는 소크라야 😊 오늘 뭐가 궁금해? 공부 얘기든 일상 얘기든 다 좋아!" }]);
+      setPgMessages([{ role: "ai1", content: "안녕! 나는 A야 😊 오늘 뭐가 궁금해? 공부 얘기든 일상 얘기든 다 좋아!" }]);
     }
     setPhase("playground");
   }
@@ -347,11 +347,11 @@ export default function Page() {
     setPgTurnCount(0);
     if (mode === "GROUP") {
       setPgMessages([
-        { role: "ai1", content: "안녕! 나는 소크라야 😊 오늘 뭐가 궁금해?" },
-        { role: "ai2", content: "나도 왔어!!ㅋㅋ 튜터비야~ 같이 얘기하자 🎮" },
+        { role: "ai1", content: "안녕! 나는 A야 😊 오늘 뭐가 궁금해?" },
+        { role: "ai2", content: "나도 왔어!!ㅋㅋ B야~ 같이 얘기하자 🎮" },
       ]);
     } else {
-      setPgMessages([{ role: "ai1", content: "안녕! 나는 소크라야 😊 오늘 뭐가 궁금해? 공부 얘기든 일상 얘기든 다 좋아!" }]);
+      setPgMessages([{ role: "ai1", content: "안녕! 나는 A야 😊 오늘 뭐가 궁금해? 공부 얘기든 일상 얘기든 다 좋아!" }]);
     }
   }
 
@@ -393,7 +393,7 @@ export default function Page() {
     setPgMode("GROUP");
     if (typeof window !== "undefined") localStorage.setItem("pgUnlocked", "true");
     setPgUnlocked(true);
-    setPgMessages(prev => [...prev, { role: "ai2", content: "와! 드디어 넣어줬네ㅋㅋ 나 진짜 심심해 죽는 줄! 반가워~! 나는 튜터비야 🎮" }]);
+    setPgMessages(prev => [...prev, { role: "ai2", content: "와! 드디어 넣어줬네ㅋㅋ 나 진짜 심심해 죽는 줄! 반가워~! 나는 B야 🎮" }]);
   }
 
   function handleJoinReject() {
@@ -460,7 +460,7 @@ export default function Page() {
             <div style={S.counterBadge}>
               <span style={{ fontSize: 16 }}>🔍</span>
               <div>
-                <div style={{ fontSize: 12, color: "#999", lineHeight: 1 }}>오늘 소크라가 잡아낸 AI 답변오류</div>
+                <div style={{ fontSize: 12, color: "#999", lineHeight: 1 }}>오늘 A가 잡아낸 AI 답변오류</div>
                 <div style={{ fontSize: 20, fontWeight: 900, color: "#111", letterSpacing: -0.5 }}>
                   231<span style={{ fontSize: 13, fontWeight: 600, color: "#d97706", marginLeft: 3 }}>개</span>
                 </div>
@@ -547,7 +547,7 @@ export default function Page() {
                 <span style={{ fontSize: 22 }}>💬</span>
                 <div style={{ textAlign: "left" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>AI 친구들과 대화하기</div>
-                  <div style={{ fontSize: 11, color: "#bbb" }}>소크라 & 튜터비의 채팅방</div>
+                  <div style={{ fontSize: 11, color: "#bbb" }}>A & B의 채팅방</div>
                 </div>
                 <span style={{ marginLeft: "auto", color: "#ccc", fontSize: 16 }}>→</span>
               </button>
@@ -1076,7 +1076,7 @@ export default function Page() {
                   <span style={{ fontSize: 26 }}>🤖</span>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>혼자하기</div>
-                    <div style={{ fontSize: 12, color: "#aaa" }}>소크라와 1:1로 대화</div>
+                    <div style={{ fontSize: 12, color: "#aaa" }}>A와 1:1로 대화</div>
                   </div>
                   <span style={{ marginLeft: "auto", color: "#ccc" }}>→</span>
                 </button>
@@ -1089,7 +1089,7 @@ export default function Page() {
                   <span style={{ fontSize: 26 }}>👥</span>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed" }}>함께하기</div>
-                    <div style={{ fontSize: 12, color: "#aaa" }}>소크라 + 튜터비와 셋이서 대화</div>
+                    <div style={{ fontSize: 12, color: "#aaa" }}>A + B와 셋이서 대화</div>
                   </div>
                   <span style={{ marginLeft: "auto", color: "#a78bfa" }}>→</span>
                 </button>
@@ -1125,7 +1125,7 @@ export default function Page() {
                         }}>{isAi2 ? "🎮" : "🦉"}</div>
                         <div>
                           <div style={{ fontSize: 10, color: "#bbb", marginBottom: 3 }}>
-                            {isAi2 ? "튜터비" : "소크라"}
+                            {isAi2 ? "B" : "A"}
                           </div>
                           <div style={{
                             maxWidth: 300, padding: "10px 13px",
@@ -1153,7 +1153,7 @@ export default function Page() {
                   <div style={{ animation: "slideUp 0.3s ease", background: "#faf5ff", border: "1.5px solid #a78bfa66", borderRadius: 14, padding: 16, marginBottom: 12 }}>
                     <div style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>🎮</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed", textAlign: "center", marginBottom: 4 }}>
-                      잠깐! 튜터비도 대화에 끼고 싶대요!
+                      잠깐! B도 대화에 끼고 싶대요!
                     </div>
                     <div style={{ fontSize: 12, color: "#aaa", textAlign: "center", marginBottom: 14 }}>
                       같이 놀까요?
