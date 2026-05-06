@@ -1053,10 +1053,19 @@ export default function Page() {
           <div style={S.card}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <button onClick={reset} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", fontSize: 18 }}>←</button>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>플레이그라운드</div>
                 <div style={{ fontSize: 11, color: "#bbb" }}>AI 친구들과 자유롭게 대화해봐</div>
               </div>
+              <button
+                onClick={() => {
+                  localStorage.removeItem("pgUnlocked");
+                  enterPlayground();
+                }}
+                style={{ fontSize: 11, color: "#ccc", background: "none", border: "1px solid #e8e8e4", borderRadius: 8, padding: "4px 8px", cursor: "pointer" }}
+              >
+                🔄 초기화
+              </button>
             </div>
 
             {/* 모드 선택 (잠금 해제 후 재진입 시) */}
