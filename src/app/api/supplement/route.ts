@@ -31,7 +31,7 @@ ${reason}
 `.trim();
 
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-6",
       max_tokens: 1024,
       system: SUPPLEMENT_SYSTEM,
       messages: [{ role: "user", content: userPrompt }],
@@ -39,7 +39,9 @@ ${reason}
 
     const text = response.content.find(b => b.type === "text")?.text ?? "";
     const clean = text.replace(/```json|```/g, "").trim();
-    const step = JSON.parse(clean);
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("JSON not found in response");
+    const step = JSON.parse(jsonMatch[0]);
     step.isSupplementary = true;
 
     return NextResponse.json({ ok: true, step });

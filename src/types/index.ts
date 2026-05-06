@@ -71,14 +71,17 @@ export interface TutoringData {
 
 // ── API 요청/응답 ──────────────────────────────────────────────
 export interface AnalyzeRequest {
-  imageBase64: string;
-  mediaType: string;
+  imageBase64?: string;
+  mediaType?: string;
+  text?: string;
 }
 
 export interface GenerateTutoringRequest {
-  imageBase64: string;
-  mediaType: string;
-  analysis: ProblemAnalysis; // 유저가 확인/수정한 값
+  imageBase64?: string;
+  mediaType?: string;
+  text?: string;
+  analysis: ProblemAnalysis;
+  levelId: LevelId;
 }
 
 export interface SupplementRequest {
@@ -87,4 +90,30 @@ export interface SupplementRequest {
   currentStepQuestion: string;
   levelId: LevelId;
   masterSolution: MasterSolution;
+}
+
+// ── 멀티모델 리포트 ────────────────────────────────────────────
+export interface ModelResult {
+  id: "A" | "B" | "C";
+  label: string;
+  answer: string;
+}
+
+export interface ReportData {
+  models: ModelResult[];
+  signal: "green" | "yellow";
+}
+
+// ── 채팅 ──────────────────────────────────────────────────────
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+// ── 인풋 ──────────────────────────────────────────────────────
+export interface InputData {
+  text?: string;
+  imageBase64?: string;
+  mediaType?: string;
+  preview?: string;
 }
