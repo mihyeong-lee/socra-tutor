@@ -877,7 +877,7 @@ export default function Page() {
                 {step.isSupplementary && <div style={S.supBadge}>💡 보충 설명</div>}
 
                 <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                  <div style={S.ava}>🤖</div>
+                  <div style={S.ava}>🦉</div>
                   <div style={S.bubble}>{step.guide}</div>
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#111", lineHeight: 1.55, marginBottom: 14 }}>
@@ -1063,7 +1063,7 @@ export default function Page() {
             {!pgModeSelected && (
               <div style={{ animation: "slideUp 0.3s ease" }}>
                 <div style={{ ...S.infoBox, marginBottom: 14, textAlign: "center" }}>
-                  <div style={{ fontSize: 22, marginBottom: 8 }}>👋</div>
+                  <div style={{ fontSize: 22, marginBottom: 8 }}>🦉</div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4 }}>어떻게 대화할까?</div>
                   <div style={{ fontSize: 12, color: "#aaa" }}>이번엔 처음부터 고를 수 있어!</div>
                 </div>
@@ -1122,7 +1122,7 @@ export default function Page() {
                           border: `1px solid ${isAi2 ? "#a78bfa55" : "#e0e0db"}`,
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 15, flexShrink: 0,
-                        }}>{isAi2 ? "🎮" : "🤖"}</div>
+                        }}>{isAi2 ? "🎮" : "🦉"}</div>
                         <div>
                           <div style={{ fontSize: 10, color: "#bbb", marginBottom: 3 }}>
                             {isAi2 ? "튜터비" : "소크라"}
