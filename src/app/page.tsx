@@ -6,10 +6,14 @@ import type { ProblemAnalysis, TutoringData, TutorStep, LevelId, ReportData, Cha
 type Phase =
   | "home" | "asking" | "report" | "chatting"
   | "analyzing" | "confirm" | "select" | "generating" | "tutor" | "complete"
-  | "playground";
+  | "playground" | "pgTopic" | "pgPartner";
+
+type SelectedMode = "해설지" | "튜터링" | "고민상담";
 
 type PlaygroundMode = "SINGLE" | "GROUP";
 type PgMessage = { role: "user" | "ai1" | "ai2"; content: string };
+type ModelStatusValue = "waiting" | "solving" | "done";
+type ModelStatus = { A: ModelStatusValue; B: ModelStatusValue; C: ModelStatusValue };
 
 const SUBJECTS = ["수학","영어","국어","과학","사회","역사","기술가정","도덕","음악","미술","기타"];
 const GRADES = ["초5","초6","중1","중2","중3","고1","고2","고3"];
@@ -19,8 +23,20 @@ const LEVEL_DEFS = [
   { id: "normal" as const, label: "기본 설명", sublabel: "정규 수준", emoji: "🔥", color: "#d97706" },
 ];
 
+const PG_FIRST_MSG: Record<string, Record<string, string>> = {
+  "소라": {
+    "공부": "안녕! 나 소라야 🐶 공부 얘기 들어줄게~ 요즘 어떤 거 때문에 힘들어?",
+    "심심": "안녕! 나 소라야 🐶 심심하구나ㅋㅋ 나도 마침 할 거 없었어~ 뭐 얘기할까?",
+  },
+  "크라": {
+    "공부": "크라야 🦉 공부 고민? 말해봐. 같이 생각해볼게.",
+    "심심": "크라야 🦉 심심하면 나한테 잘 왔어. 뭐든 얘기해봐.",
+  },
+};
+
 export default function Page() {
   const [phase, setPhase] = useState<Phase>("home");
+  const [selectedMode, setSelectedMode] = useState<SelectedMode>("해설지");
 
   // ── 인풋 ──
   const [inputText, setInputText] = useState("");
@@ -66,6 +82,9 @@ export default function Page() {
   // ── 해설지 ──
   const [showSolution, setShowSolution] = useState(false);
 
+  // ── 모델 로딩 상태 ──
+  const [modelStatus, setModelStatus] = useState<ModelStatus>({ A: "waiting", B: "waiting", C: "waiting" });
+
   // ── 플레이그라운드 ──
   const [pgMessages, setPgMessages] = useState<PgMessage[]>([]);
   const [pgInput, setPgInput] = useState("");
@@ -73,8 +92,9 @@ export default function Page() {
   const [pgMode, setPgMode] = useState<PlaygroundMode>("SINGLE");
   const [pgTurnCount, setPgTurnCount] = useState(0);
   const [showJoinPopup, setShowJoinPopup] = useState(false);
-  const [pgUnlocked, setPgUnlocked] = useState(false);
   const [pgModeSelected, setPgModeSelected] = useState(false);
+  const [pgTopic, setPgTopic] = useState<"공부" | "심심" | null>(null);
+  const [pgPartner, setPgPartner] = useState<"소라" | "크라" | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -102,9 +122,14 @@ export default function Page() {
     pgEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [pgMessages]);
 
-  // ── 이미지 처리 ──
+  const SUPPORTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) return;
+    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+      setError("JPG · PNG · GIF · WEBP만 지원해. 아이폰 사진(HEIC)은 카메라 설정에서 '호환성 우선'으로 바꾸거나, JPG로 변환 후 업로드해줘!");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
@@ -118,10 +143,14 @@ export default function Page() {
   }, []);
 
   // ── 질문 제출 ──
-  async function askModels() {
+  async function askModels(tutoring = false) {
     if (!inputText.trim() && !inputImage) return;
+    setTutoringMode(tutoring);
     setPhase("asking");
     setError("");
+    setModelStatus({ A: "solving", B: "waiting", C: "waiting" });
+    const timerB = setTimeout(() => setModelStatus(prev => ({ ...prev, B: "solving" })), 800);
+    const timerC = setTimeout(() => setModelStatus(prev => ({ ...prev, C: "solving" })), 1600);
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
@@ -133,10 +162,20 @@ export default function Page() {
         }),
       });
       const data = await res.json();
+      clearTimeout(timerB);
+      clearTimeout(timerC);
       if (!data.ok) throw new Error(data.error);
-      setReport({ models: data.models, signal: data.signal });
-      setPhase("report");
+      setModelStatus(s => ({ ...s, A: "done" }));
+      setTimeout(() => setModelStatus(s => ({ ...s, B: "done" })), 150);
+      setTimeout(() => setModelStatus(s => ({ ...s, C: "done" })), 300);
+      setTimeout(() => {
+        setReport({ models: data.models, signal: data.signal });
+        setPhase("report");
+      }, 700);
     } catch {
+      clearTimeout(timerB);
+      clearTimeout(timerC);
+      setModelStatus({ A: "waiting", B: "waiting", C: "waiting" });
       setError("분석 실패. 다시 시도해줘.");
       setPhase("home");
     }
@@ -323,36 +362,17 @@ export default function Page() {
     return "";
   }
 
-  // ── 플레이그라운드 ──
-  function enterPlayground() {
-    const unlocked = typeof window !== "undefined" && localStorage.getItem("pgUnlocked") === "true";
-    setPgUnlocked(unlocked);
+  // ── 고민 모드 (파트너 선택) ──
+  function selectPartner(partner: "소라" | "크라") {
+    const topic = pgTopic ?? "심심";
+    setPgPartner(partner);
     setPgMode("SINGLE");
-    setShowJoinPopup(false);
-    setPgInput("");
-    setPgTurnCount(0);
-    if (unlocked) {
-      setPgModeSelected(false);
-      setPgMessages([]);
-    } else {
-      setPgModeSelected(true);
-      setPgMessages([{ role: "ai1", content: "안녕! 나는 A야 😊 오늘 뭐가 궁금해? 공부 얘기든 일상 얘기든 다 좋아!" }]);
-    }
-    setPhase("playground");
-  }
-
-  function selectPgMode(mode: PlaygroundMode) {
-    setPgMode(mode);
     setPgModeSelected(true);
     setPgTurnCount(0);
-    if (mode === "GROUP") {
-      setPgMessages([
-        { role: "ai1", content: "안녕! 나는 A야 😊 오늘 뭐가 궁금해?" },
-        { role: "ai2", content: "나도 왔어!!ㅋㅋ B야~ 같이 얘기하자 🎮" },
-      ]);
-    } else {
-      setPgMessages([{ role: "ai1", content: "안녕! 나는 A야 😊 오늘 뭐가 궁금해? 공부 얘기든 일상 얘기든 다 좋아!" }]);
-    }
+    setShowJoinPopup(false);
+    setPgInput("");
+    setPgMessages([{ role: "ai1", content: PG_FIRST_MSG[partner][topic] }]);
+    setPhase("playground");
   }
 
   async function sendPgMessage() {
@@ -368,7 +388,7 @@ export default function Page() {
       const res = await fetch("/api/playground", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: newMessages, mode: pgMode }),
+        body: JSON.stringify({ messages: newMessages, mode: pgMode, partner: pgPartner, topic: pgTopic }),
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error);
@@ -378,7 +398,7 @@ export default function Page() {
       } else {
         setPgMessages(withAi1);
       }
-      if (newTurnCount === 5 && pgMode === "SINGLE" && !pgUnlocked) {
+      if (newTurnCount === 5 && pgMode === "SINGLE") {
         setTimeout(() => setShowJoinPopup(true), 600);
       }
     } catch {
@@ -391,20 +411,23 @@ export default function Page() {
   function handleJoinAccept() {
     setShowJoinPopup(false);
     setPgMode("GROUP");
-    if (typeof window !== "undefined") localStorage.setItem("pgUnlocked", "true");
-    setPgUnlocked(true);
-    setPgMessages(prev => [...prev, { role: "ai2", content: "와! 드디어 넣어줬네ㅋㅋ 나 진짜 심심해 죽는 줄! 반가워~! 나는 B야 🎮" }]);
+    const joinMsg = pgPartner === "소라"
+      ? "와! 나 크라야 🦉 기다리고 있었는데ㅋㅋ 같이 얘기하자!"
+      : "나 소라야 🐶 와줬다! 같이 얘기하면 재밌겠다~";
+    setPgMessages(prev => [...prev, { role: "ai2", content: joinMsg }]);
   }
 
   function handleJoinReject() {
     setShowJoinPopup(false);
-    if (typeof window !== "undefined") localStorage.setItem("pgUnlocked", "true");
-    setPgUnlocked(true);
-    setPgMessages(prev => [...prev, { role: "ai1", content: "알겠어! 이번엔 둘이서만 놀자 😊 다음에 들어올 땐 처음부터 같이 할지 혼자 할지 직접 고를 수 있어!" }]);
+    const msg = pgPartner === "소라"
+      ? "알겠어! 우리 둘이 계속 얘기하자 😊"
+      : "그래. 우리끼리 계속가자.";
+    setPgMessages(prev => [...prev, { role: "ai1", content: msg }]);
   }
 
   function reset() {
     setPhase("home");
+    setSelectedMode("해설지");
     setInputText(""); setInputImage(null); setTutoringMode(false);
     setReport(null);
     setChatModelLabel(""); setChatMessages([]); setChatContext(""); setChatInput("");
@@ -416,12 +439,22 @@ export default function Page() {
     setShowIntro(false); setError("");
     setEditSubject(""); setEditGrade(""); setEditSemester(""); setEditUnit("");
     setShowSolution(false);
+    setModelStatus({ A: "waiting", B: "waiting", C: "waiting" });
     setPgMessages([]); setPgInput(""); setPgLoading(false);
     setPgMode("SINGLE"); setPgTurnCount(0); setShowJoinPopup(false);
-    setPgModeSelected(false);
+    setPgModeSelected(false); setPgTopic(null); setPgPartner(null);
   }
 
   const canSubmit = inputText.trim().length > 0 || inputImage !== null;
+
+  // playground 캐릭터 스타일 헬퍼
+  const pgPartnerEmoji = pgPartner === "소라" ? "🐶" : "🦉";
+  const pgOtherEmoji = pgPartner === "소라" ? "🦉" : "🐶";
+  const pgOtherName = pgPartner === "소라" ? "크라" : "소라";
+  const pgAi1Bg = pgPartner === "소라" ? "#fffbeb" : "#f5f3ff";
+  const pgAi1Border = pgPartner === "소라" ? "#f59e0b44" : "#7c3aed44";
+  const pgAi2Bg = pgPartner === "소라" ? "#f5f3ff" : "#fffbeb";
+  const pgAi2Border = pgPartner === "소라" ? "#7c3aed44" : "#f59e0b44";
 
   return (
     <div style={S.root}>
@@ -435,9 +468,10 @@ export default function Page() {
             {level.emoji} {level.label}
           </span>
         )}
-        {phase === "playground" && (
-          <span style={{ fontSize: 12, color: "#999", fontWeight: 600 }}>
-            {pgMode === "GROUP" ? "👥 함께하기" : "🤖 혼자하기"}
+        {phase === "playground" && pgPartner && (
+          <span style={{ fontSize: 13, color: "#444", fontWeight: 700 }}>
+            {pgPartner === "소라" ? "소라 🐶" : "크라 🦉"}
+            {pgMode === "GROUP" && (pgPartner === "소라" ? " & 크라 🦉" : " & 소라 🐶")}
           </span>
         )}
       </header>
@@ -456,112 +490,153 @@ export default function Page() {
         {/* ══ HOME ══ */}
         {phase === "home" && (
           <div style={S.card}>
-            {/* 카운터 배지 */}
-            <div style={S.counterBadge}>
-              <span style={{ fontSize: 16 }}>🔍</span>
-              <div>
-                <div style={{ fontSize: 12, color: "#999", lineHeight: 1 }}>오늘 A가 잡아낸 AI 답변오류</div>
-                <div style={{ fontSize: 20, fontWeight: 900, color: "#111", letterSpacing: -0.5 }}>
-                  231<span style={{ fontSize: 13, fontWeight: 600, color: "#d97706", marginLeft: 3 }}>개</span>
-                </div>
-              </div>
+            {/* 모드 탭 */}
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              {(["해설지모드", "튜터링모드", "고민상담모드"] as const).map((label) => {
+                const key = label.replace("모드", "") as SelectedMode;
+                const active = selectedMode === key;
+                return (
+                  <button
+                    key={label}
+                    onClick={() => setSelectedMode(key)}
+                    style={{
+                      flex: 1, padding: "9px 4px", borderRadius: 10, fontSize: 12, fontWeight: 700,
+                      cursor: "pointer", border: "1.5px solid",
+                      borderColor: active ? "#f59e0b" : "#e0e0db",
+                      background: active ? "#fffbeb" : "#f5f5f2",
+                      color: active ? "#d97706" : "#aaa",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
 
-            <h1 style={S.h1}>문제를 입력해줘</h1>
-            <p style={S.sub}>텍스트, 이미지, 또는 둘 다 입력할 수 있어</p>
-
-            <textarea
-              value={inputText}
-              onChange={e => setInputText(e.target.value)}
-              placeholder="질문이나 문제를 직접 입력해봐..."
-              style={S.textarea}
-            />
-
-            <div
-              style={{ ...S.drop, minHeight: 80, marginTop: 10 }}
-              onClick={() => fileRef.current?.click()}
-              onDragOver={e => e.preventDefault()}
-              onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-            >
-              {inputImage?.preview ? (
-                <div style={{ position: "relative", textAlign: "center" }}>
-                  <img src={inputImage.preview} alt="업로드된 이미지" style={{ maxHeight: 140, maxWidth: "100%", borderRadius: 8, objectFit: "contain" }} />
-                  <button onClick={e => { e.stopPropagation(); setInputImage(null); }}
-                    style={{ position: "absolute", top: -8, right: -8, background: "#ddd", border: "none", borderRadius: "50%", width: 22, height: 22, color: "#555", cursor: "pointer", fontSize: 12 }}>✕</button>
-                </div>
-              ) : (
-                <>
-                  <div style={{ fontSize: 28, marginBottom: 4 }}>📷</div>
-                  <div style={{ fontSize: 13, color: "#888" }}>이미지 클릭 또는 드래그</div>
-                  <div style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}>JPG · PNG · HEIC</div>
-                </>
-              )}
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
-                onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
-            </div>
-
-            <button
-              onClick={() => setTutoringMode(m => !m)}
-              style={{
-                display: "flex", alignItems: "center", gap: 8,
-                background: tutoringMode ? "#fffbeb" : "#f5f5f2",
-                border: `1.5px solid ${tutoringMode ? "#f59e0b" : "#e0e0db"}`,
-                borderRadius: 10, padding: "10px 14px", width: "100%",
-                cursor: "pointer", marginTop: 10,
-              }}
-            >
-              <div style={{
-                width: 36, height: 20, borderRadius: 10,
-                background: tutoringMode ? "#f59e0b" : "#d0d0cb",
-                position: "relative", transition: "background 0.2s", flexShrink: 0,
-              }}>
-                <div style={{
-                  position: "absolute", top: 3, left: tutoringMode ? 18 : 3,
-                  width: 14, height: 14, borderRadius: "50%",
-                  background: "#fff", transition: "left 0.2s",
-                }} />
-              </div>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: tutoringMode ? "#d97706" : "#888" }}>
-                  튜터링 모드
-                </div>
-                <div style={{ fontSize: 11, color: "#bbb" }}>
-                  {tutoringMode ? "답이 가려져서 표시돼 · 튜터링으로 연결 가능" : "켜면 답을 가리고 튜터링으로 연결 가능"}
+            {/* 고민상담 모드 안내 */}
+            {selectedMode === "고민상담" && (
+              <div style={{ ...S.infoBox, marginBottom: 14, textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>
+                  소라 🐶 또는 크라 🦉 와 1:1 대화<br />
+                  <span style={{ fontSize: 12, color: "#bbb" }}>공부 고민이든 그냥 심심해서든 다 OK</span>
                 </div>
               </div>
-            </button>
+            )}
+
+            {/* 입력 영역 (고민상담 외) */}
+            {selectedMode !== "고민상담" && (
+              <>
+                <textarea
+                  value={inputText}
+                  onChange={e => setInputText(e.target.value)}
+                  placeholder={selectedMode === "튜터링" ? "같이 풀 문제를 입력해봐..." : "질문이나 문제를 직접 입력해봐..."}
+                  style={S.textarea}
+                />
+
+                <div
+                  style={{ ...S.drop, minHeight: 80, marginTop: 10 }}
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+                >
+                  {inputImage?.preview ? (
+                    <div style={{ position: "relative", textAlign: "center" }}>
+                      <img src={inputImage.preview} alt="업로드된 이미지" style={{ maxHeight: 140, maxWidth: "100%", borderRadius: 8, objectFit: "contain" }} />
+                      <button onClick={e => { e.stopPropagation(); setInputImage(null); }}
+                        style={{ position: "absolute", top: -8, right: -8, background: "#ddd", border: "none", borderRadius: "50%", width: 22, height: 22, color: "#555", cursor: "pointer", fontSize: 12 }}>✕</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 28, marginBottom: 4 }}>📷</div>
+                      <div style={{ fontSize: 13, color: "#888" }}>이미지 클릭 또는 드래그</div>
+                      <div style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}>JPG · PNG · HEIC</div>
+                    </>
+                  )}
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" style={{ display: "none" }}
+                    onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
+                </div>
+              </>
+            )}
 
             {error && <div style={S.err}>{error}</div>}
 
             <button
-              style={{ ...S.cta, opacity: canSubmit ? 1 : 0.4 }}
-              onClick={askModels}
-              disabled={!canSubmit}
+              style={{
+                ...S.cta,
+                opacity: selectedMode === "고민상담" || canSubmit ? 1 : 0.4,
+              }}
+              onClick={() => {
+                if (selectedMode === "고민상담") {
+                  setPhase("pgTopic");
+                } else {
+                  askModels(selectedMode === "튜터링");
+                }
+              }}
+              disabled={selectedMode !== "고민상담" && !canSubmit}
             >
-              분석 시작 →
+              {selectedMode === "고민상담" ? "대화 시작하기 →" : "분석 시작 →"}
             </button>
-
-            {/* 플레이그라운드 진입점 */}
-            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e8e8e4" }}>
-              <button onClick={enterPlayground} style={S.pgEntry}>
-                <span style={{ fontSize: 22 }}>💬</span>
-                <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>AI 친구들과 대화하기</div>
-                  <div style={{ fontSize: 11, color: "#bbb" }}>A & B의 채팅방</div>
-                </div>
-                <span style={{ marginLeft: "auto", color: "#ccc", fontSize: 16 }}>→</span>
-              </button>
-            </div>
           </div>
         )}
 
         {/* ══ ASKING ══ */}
         {phase === "asking" && (
-          <div style={{ ...S.card, textAlign: "center", paddingTop: 48 }}>
+          <div style={{ ...S.card, paddingTop: 32 }}>
             {inputImage?.preview && <img src={inputImage.preview} alt="" style={S.previewImg} />}
-            <div style={S.spin} />
-            <div style={{ fontSize: 17, fontWeight: 700, color: "#111", marginBottom: 8 }}>3개 모델이 분석 중…</div>
-            <div style={{ fontSize: 13, color: "#aaa" }}>Claude · GPT · Gemini가 동시에 풀고 있어</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "#111", marginBottom: 6, textAlign: "center" }}>
+              풀이 중이야, 잠깐만!
+            </div>
+            <div style={{ fontSize: 13, color: "#aaa", marginBottom: 22, textAlign: "center" }}>
+              Claude · GPT · Gemini가 동시에 분석 중
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {([
+                { key: "A" as const, label: "Claude" },
+                { key: "B" as const, label: "GPT" },
+                { key: "C" as const, label: "Gemini" },
+              ]).map(({ key, label }) => {
+                const status = modelStatus[key];
+                return (
+                  <div key={key} style={{
+                    display: "flex", alignItems: "center", gap: 14,
+                    background: "#f5f5f2", border: "1px solid #e8e8e4",
+                    borderRadius: 12, padding: "14px 16px",
+                  }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: "50%",
+                      background: "#eeeee9", border: "1px solid #e0e0db",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 13, fontWeight: 800, color: "#888", flexShrink: 0,
+                    }}>
+                      {label[0]}
+                    </div>
+                    <div style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#111" }}>{label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
+                      {status === "waiting" && (
+                        <span style={{ color: "#ccc" }}>⏳ 풀이 대기 중</span>
+                      )}
+                      {status === "solving" && (
+                        <span style={{ color: "#f59e0b", display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{
+                            width: 13, height: 13,
+                            border: "2px solid #fde68a",
+                            borderTop: "2px solid #f59e0b",
+                            borderRadius: "50%",
+                            display: "inline-block",
+                            animation: "spin 0.75s linear infinite",
+                          }} />
+                          풀이 중...
+                        </span>
+                      )}
+                      {status === "done" && (
+                        <span style={{ color: "#16a34a" }}>✅ 완료</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -1048,64 +1123,108 @@ export default function Page() {
           </div>
         )}
 
+        {/* ══ PG TOPIC ══ */}
+        {phase === "pgTopic" && (
+          <div style={S.card}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+              <button onClick={() => setPhase("home")} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", fontSize: 18 }}>←</button>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "#111" }}>오늘 어떤 얘기 할까?</div>
+            </div>
+
+            <button
+              onClick={() => { setPgTopic("공부"); setPhase("pgPartner"); }}
+              style={S.modeCard}
+            >
+              <span style={{ fontSize: 30 }}>📚</span>
+              <div style={{ textAlign: "left", flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>공부/시험 고민</div>
+              </div>
+              <span style={{ color: "#ccc", fontSize: 18 }}>→</span>
+            </button>
+
+            <button
+              onClick={() => { setPgTopic("심심"); setPhase("pgPartner"); }}
+              style={{ ...S.modeCard, marginTop: 10 }}
+            >
+              <span style={{ fontSize: 30 }}>🎲</span>
+              <div style={{ textAlign: "left", flex: 1 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>그냥 심심해서</div>
+              </div>
+              <span style={{ color: "#ccc", fontSize: 18 }}>→</span>
+            </button>
+          </div>
+        )}
+
+        {/* ══ PG PARTNER ══ */}
+        {phase === "pgPartner" && (
+          <div style={S.card}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+              <button onClick={() => setPhase("pgTopic")} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", fontSize: 18 }}>←</button>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "#111" }}>누구랑 얘기할래?</div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => selectPartner("소라")}
+                style={{
+                  flex: 1, padding: "22px 12px", background: "#fffbeb",
+                  border: "2px solid #f59e0b55", borderRadius: 16,
+                  cursor: "pointer", textAlign: "center",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                }}
+              >
+                <div style={{ fontSize: 36 }}>🐶</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#d97706" }}>소라</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>공감 잘 해줘</div>
+                <div style={{ fontSize: 11, color: "#999", lineHeight: 1.55 }}>
+                  고민 들어주는 스타일.<br />네 편 확실히 들어줌.
+                </div>
+                <div style={{ fontSize: 10, color: "#d97706", background: "#fff8e0", border: "1px solid #f59e0b33", borderRadius: 99, padding: "4px 10px", marginTop: 2, fontStyle: "italic" }}>
+                  "그렇구나~ 어떻게 된 거야?"
+                </div>
+              </button>
+
+              <button
+                onClick={() => selectPartner("크라")}
+                style={{
+                  flex: 1, padding: "22px 12px", background: "#f5f3ff",
+                  border: "2px solid #7c3aed55", borderRadius: 16,
+                  cursor: "pointer", textAlign: "center",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                }}
+              >
+                <div style={{ fontSize: 36 }}>🦉</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#7c3aed" }}>크라</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#7c3aed" }}>솔직하게 말해줘</div>
+                <div style={{ fontSize: 11, color: "#999", lineHeight: 1.55 }}>
+                  직설적이지만 차갑진 않아.<br />새로운 시각 줌.
+                </div>
+                <div style={{ fontSize: 10, color: "#7c3aed", background: "#ede9fe", border: "1px solid #7c3aed33", borderRadius: 99, padding: "4px 10px", marginTop: 2, fontStyle: "italic" }}>
+                  "근데 그게 진짜 문제야?"
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ══ PLAYGROUND ══ */}
         {phase === "playground" && (
           <div style={S.card}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <button onClick={reset} style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", fontSize: 18 }}>←</button>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>플레이그라운드</div>
-                <div style={{ fontSize: 11, color: "#bbb" }}>AI 친구들과 자유롭게 대화해봐</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>
+                  {pgMode === "GROUP"
+                    ? (pgPartner === "소라" ? "소라 🐶 & 크라 🦉" : "크라 🦉 & 소라 🐶")
+                    : (pgPartner === "소라" ? "소라 🐶" : "크라 🦉")
+                  }
+                </div>
+                <div style={{ fontSize: 11, color: "#bbb" }}>
+                  {pgMode === "GROUP" ? "함께하기" : "1:1 대화"}
+                </div>
               </div>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("pgUnlocked");
-                  enterPlayground();
-                }}
-                style={{ fontSize: 11, color: "#ccc", background: "none", border: "1px solid #e8e8e4", borderRadius: 8, padding: "4px 8px", cursor: "pointer" }}
-              >
-                🔄 초기화
-              </button>
             </div>
 
-            {/* 모드 선택 (잠금 해제 후 재진입 시) */}
-            {!pgModeSelected && (
-              <div style={{ animation: "slideUp 0.3s ease" }}>
-                <div style={{ ...S.infoBox, marginBottom: 14, textAlign: "center" }}>
-                  <div style={{ fontSize: 22, marginBottom: 8 }}>🦉</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4 }}>어떻게 대화할까?</div>
-                  <div style={{ fontSize: 12, color: "#aaa" }}>이번엔 처음부터 고를 수 있어!</div>
-                </div>
-                <button onClick={() => selectPgMode("SINGLE")} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  background: "#f8f8f5", border: "1.5px solid #e0e0db",
-                  borderRadius: 13, padding: "15px 17px", width: "100%",
-                  cursor: "pointer", marginBottom: 10,
-                }}>
-                  <span style={{ fontSize: 26 }}>🤖</span>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>혼자하기</div>
-                    <div style={{ fontSize: 12, color: "#aaa" }}>A와 1:1로 대화</div>
-                  </div>
-                  <span style={{ marginLeft: "auto", color: "#ccc" }}>→</span>
-                </button>
-                <button onClick={() => selectPgMode("GROUP")} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  background: "#faf5ff", border: "1.5px solid #a78bfa55",
-                  borderRadius: 13, padding: "15px 17px", width: "100%",
-                  cursor: "pointer", marginBottom: 10,
-                }}>
-                  <span style={{ fontSize: 26 }}>👥</span>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed" }}>함께하기</div>
-                    <div style={{ fontSize: 12, color: "#aaa" }}>A + B와 셋이서 대화</div>
-                  </div>
-                  <span style={{ marginLeft: "auto", color: "#a78bfa" }}>→</span>
-                </button>
-              </div>
-            )}
-
-            {/* 채팅 영역 */}
             {pgModeSelected && (
               <>
                 <div style={{ maxHeight: 420, overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, marginBottom: 12 }}>
@@ -1123,24 +1242,24 @@ export default function Page() {
                       );
                     }
                     const isAi2 = msg.role === "ai2";
+                    const bg = isAi2 ? pgAi2Bg : pgAi1Bg;
+                    const border = isAi2 ? pgAi2Border : pgAi1Border;
+                    const emoji = isAi2 ? pgOtherEmoji : pgPartnerEmoji;
+                    const name = isAi2 ? pgOtherName : (pgPartner ?? "");
                     return (
                       <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
                         <div style={{
                           width: 32, height: 32, borderRadius: "50%",
-                          background: isAi2 ? "#faf5ff" : "#f5f5f2",
-                          border: `1px solid ${isAi2 ? "#a78bfa55" : "#e0e0db"}`,
+                          background: bg, border: `1px solid ${border}`,
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 15, flexShrink: 0,
-                        }}>{isAi2 ? "🎮" : "🦉"}</div>
+                        }}>{emoji}</div>
                         <div>
-                          <div style={{ fontSize: 10, color: "#bbb", marginBottom: 3 }}>
-                            {isAi2 ? "B" : "A"}
-                          </div>
+                          <div style={{ fontSize: 10, color: "#bbb", marginBottom: 3 }}>{name}</div>
                           <div style={{
                             maxWidth: 300, padding: "10px 13px",
                             borderRadius: "4px 12px 12px 12px",
-                            background: isAi2 ? "#faf5ff" : "#eeeee9",
-                            border: `1px solid ${isAi2 ? "#a78bfa44" : "#e0e0db"}`,
+                            background: bg, border: `1px solid ${border}`,
                             fontSize: 13, color: "#444", lineHeight: 1.6, whiteSpace: "pre-wrap",
                           }}>{msg.content}</div>
                         </div>
@@ -1157,21 +1276,22 @@ export default function Page() {
                   <div ref={pgEndRef} />
                 </div>
 
-                {/* 조인 팝업 */}
                 {showJoinPopup && (
                   <div style={{ animation: "slideUp 0.3s ease", background: "#faf5ff", border: "1.5px solid #a78bfa66", borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                    <div style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>🎮</div>
+                    <div style={{ fontSize: 22, textAlign: "center", marginBottom: 6 }}>
+                      {pgPartner === "소라" ? "🦉" : "🐶"}
+                    </div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed", textAlign: "center", marginBottom: 4 }}>
-                      잠깐! B도 대화에 끼고 싶대요!
+                      {pgPartner === "소라" ? "크라도 불러볼까?" : "소라도 부를까?"}
                     </div>
                     <div style={{ fontSize: 12, color: "#aaa", textAlign: "center", marginBottom: 14 }}>
-                      같이 놀까요?
+                      같이 얘기하면 더 재밌을 것 같은데?
                     </div>
                     <button onClick={handleJoinAccept} style={{ ...S.cta, background: "#7c3aed", color: "#fff", marginTop: 0, marginBottom: 8 }}>
-                      좋아! 같이 놀자 👥
+                      좋아! 같이 얘기하자 👥
                     </button>
                     <button onClick={handleJoinReject} style={S.ghost}>
-                      다음에 올래? 🙅
+                      아니, 지금은 괜찮아 🙅
                     </button>
                   </div>
                 )}
@@ -1235,5 +1355,5 @@ const S: Record<string, React.CSSProperties> = {
   fieldLabel: { fontSize: 12, color: "#aaa", width: 36, flexShrink: 0 },
   select: { flex: 1, background: "#fff", border: "1.5px solid #e0e0db", borderRadius: 10, padding: "9px 12px", fontSize: 13, color: "#333", outline: "none", fontFamily: "inherit" },
   counterBadge: { display: "flex", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e8e8e4", borderRadius: 12, padding: "12px 15px", marginBottom: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  pgEntry: { display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #e8e8e4", borderRadius: 13, padding: "14px 16px", width: "100%", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
+  modeCard: { display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid #e8e8e4", borderRadius: 14, padding: "18px 16px", width: "100%", cursor: "pointer", textAlign: "left", boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
 };
