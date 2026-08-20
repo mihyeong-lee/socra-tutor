@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Socra Tutor — 日本版プロトタイプ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   Design tokens — design-system.md §1 Color / §2 Typography
+   §3 Shadow / §4 Spacing & Radius 를 그대로 매핑
+   ========================================================= */
+:root{
+  /* Blue */
+  --color-blue-900:#060E20; --color-blue-800:#021439; --color-blue-700:#0E2759;
+  --color-blue-650:#1B478E; --color-blue-600:#2766C4; --color-blue-550:#3A82DB;
+  --color-blue-500:#4C9EF3; --color-blue-400:#82C0F9; --color-blue-300:#B8E2FF;
+  --color-blue-200:#D1EBFF; --color-blue-150:#E8F4FF; --color-blue-100:#F5FAFF;
+  --color-blue-50:#FAFDFF;
+  /* Gray */
+  --color-gray-m4:#F3F4F6; --color-gray-m35:#E3E4EB; --color-gray-m3:#DADAE2;
+  --color-gray-m2:#B5B7C6; --color-gray-m1:#9398AC; --color-gray:#777B96;
+  --color-gray-p05:#6A6E89; --color-gray-p1:#5D617C; --color-gray-p2:#464A65;
+  --color-gray-p3:#30344F; --color-gray-p4:#090C32;
+  /* Point */
+  --color-purple-900:#3A1C99; --color-purple-700:#4F2BCF; --color-purple-500:#7556F1;
+  --color-purple-300:#B7A3FF; --color-purple-100:#F0E9FF;
+  --color-green-900:#168852; --color-green-700:#0FAF6A; --color-green-500:#63E4A0;
+  --color-green-300:#A8F4C9; --color-green-100:#E3F9EE;
+  --color-error-900:#99283C; --color-error-700:#DC2C4B; --color-error-500:#F95C78;
+  --color-error-300:#F8A8B4; --color-error-100:#FDE3E8;
+  --color-yellow-900:#8F7420; --color-yellow-700:#DAB72A; --color-yellow-500:#FFE56E;
+  --color-yellow-300:#FFF0A8; --color-yellow-100:#FFF9E1;
+  --color-coral-900:#8B3F2A; --color-coral-700:#D65840; --color-coral-500:#F48D72;
+  --color-coral-300:#F8B8A6; --color-coral-100:#FDE9E4;
+  --color-pink-900:#7D2D60; --color-pink-700:#D42396; --color-pink-500:#EE70C2;
+  --color-pink-300:#F6ACD5; --color-pink-100:#FCE6F3;
+  /* Common */
+  --color-white:#FFFFFF; --color-black:#000000;
+  /* Gradient */
+  --gradient-blue-500:linear-gradient(135deg,#72C6FF,#2A72DE);
+  --gradient-blue-400:linear-gradient(135deg,#B3E0FF,#61B8F1);
+  --gradient-blue-200:linear-gradient(135deg,#FDFDFD,#B3E0FF);
+  --gradient-pb:linear-gradient(135deg,#B7A3FF,#4C9EF3,#82C0F9);
+  --gradient-bgp:linear-gradient(135deg,#8BC9FB,#A8F4C9,#76BDF8,#B7A3FF);
+  --gradient-grb:linear-gradient(135deg,#A8F4C9,#B3E0FF,#61B8F1);
+  --gradient-gb:linear-gradient(135deg,#DADAE2,#B3E0FF);
+  --gradient-pink:radial-gradient(circle at 30% 30%,#D42396,#EE70C2);
+  /* Shadow */
+  --shadow-down-100:0 3px 12px rgba(203,215,223,.2);
+  --shadow-down-200:0 3px 12px rgba(203,215,223,.4);
+  --shadow-down-300:0 6px 16px rgba(185,186,210,.4);
+  --shadow-down-500:0 4px 16px rgba(0,0,0,.2);
+  --shadow-up-100:0 -3px 12px rgba(203,215,223,.2);
+  --shadow-up-200:0 -3px 12px rgba(203,215,223,.4);
+  --shadow-up-300:0 -6px 16px rgba(185,186,210,.4);
+  --shadow-down-light:0 3px 12px rgba(185,186,210,.4);
+  /* Spacing (4-step) */
+  --spacing-1:4px; --spacing-2:8px; --spacing-3:12px; --spacing-4:16px;
+  --spacing-5:20px; --spacing-6:24px; --spacing-8:32px; --spacing-10:40px;
+  --spacing-12:48px; --spacing-16:64px;
+  /* Radius */
+  --radius-1:4px; --radius-15:6px; --radius-2:8px; --radius-25:10px;
+  --radius-3:12px; --radius-4:16px; --radius-5:20px; --radius-6:24px; --radius-8:32px;
+}
+
+/* ---- Typography (§2) ---- */
+.t-display4-sb{font-size:28px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-display5-sb{font-size:24px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-h1{font-size:22px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-h2{font-size:20px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-h3{font-size:18px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-h4{font-size:16px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-h5{font-size:14px;font-weight:500;line-height:160%;letter-spacing:-.012em}
+.t-body1-r{font-size:18px;font-weight:400;line-height:160%;letter-spacing:-.012em}
+.t-body2-m{font-size:16px;font-weight:500;line-height:160%;letter-spacing:-.012em}
+.t-body2-r{font-size:16px;font-weight:400;line-height:160%;letter-spacing:-.012em}
+.t-body3-m{font-size:15px;font-weight:500;line-height:160%;letter-spacing:-.012em}
+.t-body3-r{font-size:15px;font-weight:400;line-height:160%;letter-spacing:-.012em}
+.t-body4-m{font-size:14px;font-weight:500;line-height:160%;letter-spacing:-.012em}
+.t-body4-r{font-size:14px;font-weight:400;line-height:160%;letter-spacing:-.012em}
+.t-body5-m{font-size:13px;font-weight:500;line-height:160%;letter-spacing:-.012em}
+.t-body5-r{font-size:13px;font-weight:400;line-height:160%;letter-spacing:-.012em}
+.t-body-chat{font-size:16px;font-weight:400;line-height:170%;letter-spacing:-.02em}
+.t-button-l{font-size:16px;font-weight:600;line-height:160%}
+.t-button-m{font-size:14px;font-weight:600;line-height:160%}
+.t-button-s{font-size:13px;font-weight:500;line-height:160%}
+.t-caption1{font-size:11px;font-weight:600;line-height:160%;letter-spacing:-.012em}
+.t-caption2{font-size:11px;font-weight:400;line-height:160%;letter-spacing:-.012em}
+.t-tag{font-size:12px;font-weight:500;line-height:160%;letter-spacing:-.02em}
+
+/* ---- Reset / base ---- */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'IBM Plex Sans JP','IBM Plex Sans KR',-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+  background:var(--color-gray-m4);
+  color:var(--color-gray-p4);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+button{font-family:inherit;border:none;background:none;cursor:pointer;color:inherit;padding:0}
+input,textarea{font-family:inherit}
+ul{margin:0;padding:0;list-style:none}
+
+/* ---- Stage / phone frame ---- */
+.stage{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  gap:var(--spacing-5);padding:var(--spacing-8) var(--spacing-4) var(--spacing-12);
+  background:radial-gradient(1200px 600px at 50% -10%,#E8F4FF 0%,#F3F4F6 60%);
+}
+.stage-head{text-align:center;max-width:520px}
+.stage-head h1{margin:0 0 var(--spacing-1)}
+.stage-head p{margin:0;color:var(--color-gray-p1)}
+.phone{
+  position:relative;width:390px;height:844px;background:var(--color-white);
+  border-radius:var(--radius-8);box-shadow:var(--shadow-down-500);
+  overflow:hidden;display:flex;flex-direction:column;
+  border:1px solid var(--color-gray-m3);
+}
+@media (max-width:430px){
+  .stage{padding:var(--spacing-4) 0}
+  .phone{width:100vw;height:100svh;border-radius:0;border:none}
+}
+
+/* ---- Status bar ---- */
+.statusbar{
+  height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--spacing-6);color:var(--color-gray-p4);
+  font-size:13px;font-weight:600;background:var(--color-white);
+}
+.statusbar .sb-right{display:flex;gap:5px;align-items:center;opacity:.75}
+
+/* ---- Top bar (§5 TopBar) ---- */
+.topbar{
+  flex:0 0 auto;display:flex;align-items:center;gap:var(--spacing-2);
+  height:52px;padding:0 var(--spacing-4);background:var(--color-white);
+  border-bottom:1px solid var(--color-gray-m4);
+}
+.topbar .tb-title{flex:1;text-align:center}
+.topbar .tb-side{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-25);color:var(--color-gray-p2)}
+.topbar .tb-side:hover{background:var(--color-gray-m4)}
+.topbar .tb-side.ghost{visibility:hidden}
+
+/* ---- Value proposition strip (기획 헤드라인) ---- */
+.valueprop{
+  flex:0 0 auto;padding:var(--spacing-3) var(--spacing-4);
+  background:var(--color-blue-150);color:var(--color-blue-700);
+  display:flex;gap:var(--spacing-2);align-items:flex-start;
+  border-bottom:1px solid var(--color-blue-200);
+}
+.valueprop .vp-num{
+  flex:0 0 auto;width:20px;height:20px;border-radius:var(--radius-circle,50%);
+  background:var(--color-blue-500);color:var(--color-white);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin-top:2px;
+}
+
+/* ---- Screen container ---- */
+.body{flex:1;position:relative;overflow:hidden;background:var(--color-white)}
+.screen{
+  position:absolute;inset:0;display:none;flex-direction:column;background:var(--color-white);
+}
+.screen.is-active{display:flex}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:0}
+.pad{padding:var(--spacing-4)}
+
+/* ---- Bottom tab bar (Figma Bottombar / 코드 미구현 → TabBar 유사 구현) ---- */
+/* TODO: 컴포넌트 확인 — design-system.md §5 "Figma엔 있으나 코드 미구현" */
+.tabbar{
+  flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--color-white);box-shadow:var(--shadow-up-200);
+  padding:var(--spacing-2) var(--spacing-2) var(--spacing-4);
+  border-top:1px solid var(--color-gray-m4);
+}
+.tab{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:var(--spacing-1) 0;border-radius:var(--radius-25);
+  color:var(--color-gray-m1);transition:color .15s ease;
+}
+.tab .tab-ico{font-size:20px;line-height:1;filter:grayscale(1);opacity:.55;transition:.15s ease}
+.tab span.tab-label{font-size:11px;font-weight:600;letter-spacing:-.012em}
+.tab.is-on{color:var(--color-blue-500)}
+.tab.is-on .tab-ico{filter:none;opacity:1;transform:translateY(-1px)}
+
+/* ---- Buttons (§5 Button / radius-3) ---- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--spacing-2);
+  border-radius:var(--radius-3);padding:var(--spacing-3) var(--spacing-4);
+  font-size:16px;font-weight:600;line-height:160%;transition:.15s ease;
+}
+.btn-primary{background:var(--color-blue-500);color:var(--color-white)}
+.btn-primary:hover{background:var(--color-blue-550)}
+.btn-primary:active{background:var(--color-blue-600)}
+.btn-secondary{background:var(--color-blue-150);color:var(--color-blue-650)}
+.btn-secondary:hover{background:var(--color-blue-200)}
+.btn-ghost{background:var(--color-gray-m4);color:var(--color-gray-p2)}
+.btn-line{border:1px solid var(--color-gray-m3);color:var(--color-gray-p2);background:var(--color-white)}
+.btn-block{display:flex;width:100%}
+.btn-sm{padding:var(--spacing-2) var(--spacing-3);font-size:14px;border-radius:var(--radius-25)}
+
+/* ---- Chip (§5 Chip) ---- */
+.chip{
+  display:inline-flex;align-items:center;gap:var(--spacing-1);
+  padding:6px var(--spacing-3);border-radius:9999px;
+  background:var(--color-gray-m4);color:var(--color-gray-p1);
+  font-size:13px;font-weight:500;white-space:nowrap;transition:.15s ease;
+}
+.chip:hover{background:var(--color-gray-m35)}
+.chip.is-on{background:var(--color-blue-500);color:var(--color-white)}
+.chip.primary{background:var(--color-blue-150);color:var(--color-blue-650)}
+.chiprow{display:flex;gap:var(--spacing-2);overflow-x:auto;padding:var(--spacing-3) var(--spacing-4);}
+.chiprow::-webkit-scrollbar{display:none}
+
+/* ---- Card ---- */
+.card{
+  background:var(--color-white);border:1px solid var(--color-gray-m4);
+  border-radius:var(--radius-4);box-shadow:var(--shadow-down-100);
+  padding:var(--spacing-4);
+}
+.card.tappable{transition:.15s ease;cursor:pointer}
+.card.tappable:hover{box-shadow:var(--shadow-down-300);transform:translateY(-1px);border-color:var(--color-blue-200)}
+.card.tappable:active{transform:translateY(0);box-shadow:var(--shadow-down-100)}
+
+/* ---- Section title ---- */
+.sect{padding:var(--spacing-5) var(--spacing-4) var(--spacing-2);display:flex;align-items:center;justify-content:space-between}
+.sect .more{color:var(--color-gray-m1);font-size:13px}
+
+/* ---- Badge ---- */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;padding:2px var(--spacing-2);
+  border-radius:9999px;font-size:11px;font-weight:600;letter-spacing:-.012em;
+}
+.badge-verified{background:var(--color-green-100);color:var(--color-green-900)}
+.badge-blue{background:var(--color-blue-150);color:var(--color-blue-650)}
+.badge-purple{background:var(--color-purple-100);color:var(--color-purple-900)}
+.badge-yellow{background:var(--color-yellow-100);color:var(--color-yellow-900)}
+.badge-error{background:var(--color-error-100);color:var(--color-error-900)}
+.badge-coral{background:var(--color-coral-100);color:var(--color-coral-900)}
+.badge-gray{background:var(--color-gray-m4);color:var(--color-gray-p1)}
+
+/* ---- Avatar ---- */
+.avatar{
+  flex:0 0 auto;width:48px;height:48px;border-radius:50%;
+  background:var(--gradient-blue-200);display:flex;align-items:center;justify-content:center;
+  font-size:24px;position:relative;border:1px solid var(--color-gray-m4);
+}
+.avatar.sm{width:40px;height:40px;font-size:20px}
+.avatar .uni{
+  position:absolute;right:-2px;bottom:-2px;width:20px;height:20px;border-radius:50%;
+  background:var(--color-white);border:1px solid var(--color-gray-m3);
+  display:flex;align-items:center;justify-content:center;font-size:10px;
+}
+
+/* ---- List row (§5 Menu / HistoryItem) ---- */
+.row{
+  display:flex;align-items:center;gap:var(--spacing-3);
+  padding:var(--spacing-3);border-radius:var(--radius-4);transition:.15s ease;cursor:pointer;
+}
+.row:hover{background:var(--color-blue-100)}
+.row .row-main{flex:1;min-width:0}
+.row .row-sub{color:var(--color-gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .caret{color:var(--color-gray-m2);flex:0 0 auto}
+
+/* ---- Empty state (Q&A) ---- */
+.empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:var(--spacing-4);padding:var(--spacing-8) var(--spacing-6);text-align:center;
+}
+.empty .cat{
+  width:96px;height:96px;border-radius:50%;background:var(--gradient-blue-200);
+  display:flex;align-items:center;justify-content:center;font-size:44px;
+  box-shadow:var(--shadow-down-200);animation:float 3s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.empty .empty-bubble{
+  border:1px solid var(--color-gray-m3);border-radius:var(--radius-6);
+  padding:var(--spacing-5) var(--spacing-6);color:var(--color-gray-m1);
+  background:var(--color-white);
+}
+
+/* ---- Chat (§6 패턴 A) ---- */
+.chatlog{display:flex;flex-direction:column;gap:var(--spacing-4);padding:var(--spacing-4)}
+.msg{display:flex;gap:var(--spacing-2);max-width:100%}
+.msg.user{justify-content:flex-end}
+.bubble-user{
+  background:var(--color-blue-500);color:var(--color-white);
+  padding:var(--spacing-3) var(--spacing-4);border-radius:var(--radius-5) var(--radius-5) var(--radius-1) var(--radius-5);
+  max-width:78%;
+}
+.agent{display:flex;gap:var(--spacing-2);align-items:flex-start;max-width:92%}
+.agent-icon{
+  flex:0 0 auto;width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--color-white);
+}
+.agent-icon.a{background:var(--gradient-pb)}
+.agent-icon.b{background:var(--gradient-grb);color:var(--color-blue-700)}
+.agent-icon.judge{background:var(--gradient-blue-500)}
+.bubble-ai{
+  background:var(--color-gray-m4);color:var(--color-gray-p4);
+  padding:var(--spacing-3) var(--spacing-4);border-radius:var(--radius-1) var(--radius-5) var(--radius-5) var(--radius-5);
+}
+.bubble-ai .who{display:flex;align-items:center;gap:var(--spacing-2);margin-bottom:var(--spacing-1)}
+.bubble-ai .formula{
+  background:var(--color-white);border:1px solid var(--color-gray-m3);border-radius:var(--radius-2);
+  padding:var(--spacing-2) var(--spacing-3);margin:var(--spacing-2) 0;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;color:var(--color-blue-700);
+}
+/* verification stepper */
+.verify{
+  background:var(--color-blue-100);border:1px solid var(--color-blue-200);
+  border-radius:var(--radius-4);padding:var(--spacing-3) var(--spacing-4);
+}
+.verify .v-head{display:flex;align-items:center;gap:var(--spacing-2);color:var(--color-blue-650);margin-bottom:var(--spacing-2)}
+.vstep{display:flex;align-items:center;gap:var(--spacing-2);padding:5px 0;color:var(--color-gray-m1);transition:.25s ease}
+.vstep .dot{
+  width:18px;height:18px;border-radius:50%;flex:0 0 auto;
+  border:2px solid var(--color-gray-m3);display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:var(--color-white);background:var(--color-white);
+}
+.vstep.doing{color:var(--color-blue-650)}
+.vstep.doing .dot{border-color:var(--color-blue-500);animation:pulse 1s ease-in-out infinite}
+.vstep.done{color:var(--color-green-900)}
+.vstep.done .dot{background:var(--color-green-700);border-color:var(--color-green-700)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,158,243,.5)}50%{box-shadow:0 0 0 5px rgba(76,158,243,0)}}
+.loader-bounce{display:inline-flex;gap:3px;align-items:center}
+.loader-bounce i{width:5px;height:5px;border-radius:50%;background:var(--color-gray-m2);animation:bnc .9s infinite}
+.loader-bounce i:nth-child(2){animation-delay:.15s}
+.loader-bounce i:nth-child(3){animation-delay:.3s}
+@keyframes bnc{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+
+/* ---- Chat input (§5 ChatInput / shadow-down-light) ---- */
+.composer{
+  flex:0 0 auto;padding:var(--spacing-3) var(--spacing-4);background:var(--color-white);
+  border-top:1px solid var(--color-gray-m4);
+}
+.composer-inner{
+  display:flex;align-items:center;gap:var(--spacing-2);
+  background:var(--color-white);border:1px solid var(--color-gray-m3);
+  border-radius:9999px;padding:var(--spacing-1) var(--spacing-1) var(--spacing-1) var(--spacing-3);
+  box-shadow:var(--shadow-down-light);transition:.15s ease;
+}
+.composer-inner:focus-within{border-color:var(--color-blue-500)}
+.composer-inner input{
+  flex:1;border:none;outline:none;background:transparent;
+  font-size:16px;line-height:170%;letter-spacing:-.02em;color:var(--color-gray-p4);padding:6px 0;
+}
+.composer-inner input::placeholder{color:var(--color-gray-m2)}
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:var(--color-gray-p1);flex:0 0 auto;transition:.15s ease;
+}
+.icon-btn:hover{background:var(--color-gray-m4)}
+.icon-btn.send{background:var(--color-blue-500);color:var(--color-white)}
+.icon-btn.send:hover{background:var(--color-blue-550)}
+
+/* ---- Tutor ---- */
+.tutor-hero{
+  background:var(--gradient-blue-200);border:1px solid var(--color-blue-200);
+  border-radius:var(--radius-5);padding:var(--spacing-4);box-shadow:var(--shadow-down-200);
+}
+.tutor-tip{
+  margin-top:var(--spacing-3);background:var(--color-white);border-radius:var(--radius-3);
+  padding:var(--spacing-2) var(--spacing-3);color:var(--color-gray-p1);
+  display:flex;gap:var(--spacing-2);align-items:center;
+}
+.tutor-item{
+  display:flex;gap:var(--spacing-3);align-items:flex-start;
+  padding:var(--spacing-3);border:1px solid var(--color-gray-m4);border-radius:var(--radius-4);
+  background:var(--color-white);box-shadow:var(--shadow-down-100);cursor:pointer;transition:.15s ease;
+}
+.tutor-item:hover{box-shadow:var(--shadow-down-300);border-color:var(--color-blue-200);transform:translateY(-1px)}
+.tutor-item .post{
+  display:flex;align-items:center;gap:var(--spacing-1);margin-top:var(--spacing-2);
+  color:var(--color-gray-m1);font-size:12px;
+}
+.tutor-item .post .thumb{
+  width:18px;height:18px;border-radius:var(--radius-1);background:var(--color-gray-m35);
+  display:flex;align-items:center;justify-content:center;font-size:9px;
+}
+
+/* ---- Mistake note ---- */
+.analysis{
+  background:var(--gradient-pb);color:var(--color-white);border-radius:var(--radius-5);
+  padding:var(--spacing-4);box-shadow:var(--shadow-down-300);
+}
+.analysis .a-title{display:flex;align-items:center;gap:var(--spacing-2);margin-bottom:var(--spacing-1)}
+.mistake{
+  border:1px solid var(--color-gray-m3);border-radius:var(--radius-4);background:var(--color-white);
+  box-shadow:var(--shadow-down-100);overflow:hidden;cursor:pointer;transition:.15s ease;
+}
+.mistake:hover{box-shadow:var(--shadow-down-300);transform:translateY(-1px);border-color:var(--color-blue-300)}
+.mistake .m-head{
+  display:flex;align-items:center;gap:var(--spacing-2);
+  padding:var(--spacing-3) var(--spacing-4);background:var(--color-gray-m4);
+  border-bottom:1px solid var(--color-gray-m3);
+}
+.mistake .m-ico{
+  width:28px;height:28px;border-radius:var(--radius-2);background:var(--color-white);
+  border:1px solid var(--color-gray-m3);display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.mistake .m-body{padding:var(--spacing-3) var(--spacing-4);display:flex;flex-direction:column;gap:4px}
+.kv{display:flex;gap:var(--spacing-2);color:var(--color-gray-p1)}
+.kv .k{flex:0 0 auto;color:var(--color-gray-m1);min-width:64px}
+.kv .v{flex:1;color:var(--color-gray-p2)}
+.stars{color:var(--color-yellow-700);letter-spacing:1px}
+.dday{color:var(--color-error-700);font-weight:600}
+
+/* ---- Daily path ---- */
+.unit-head{
+  display:flex;align-items:center;gap:var(--spacing-2);
+  background:var(--color-gray-m4);border-radius:var(--radius-3);
+  padding:var(--spacing-3) var(--spacing-4);color:var(--color-gray-p3);
+}
+.path{position:relative;padding:var(--spacing-6) 0 var(--spacing-8);display:flex;flex-direction:column;align-items:center;gap:var(--spacing-1)}
+.path::before{
+  content:"";position:absolute;top:var(--spacing-6);bottom:var(--spacing-8);left:50%;width:4px;
+  transform:translateX(-50%);background:var(--color-gray-m3);border-radius:2px;
+}
+.node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:var(--spacing-2);padding:var(--spacing-3) 0}
+.node .circle{
+  width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:26px;color:var(--color-white);background:var(--color-gray-p3);
+  box-shadow:var(--shadow-down-300);border:4px solid var(--color-white);transition:.15s ease;cursor:pointer;
+}
+.node .circle:hover{transform:scale(1.05)}
+.node.done .circle{background:var(--color-green-700)}
+.node.now .circle{background:var(--color-blue-500);animation:ring 1.8s ease-out infinite}
+.node.locked .circle{background:var(--color-gray-m2);cursor:not-allowed}
+.node.reward .circle{background:var(--gradient-pink)}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(76,158,243,.45)}70%{box-shadow:0 0 0 14px rgba(76,158,243,0)}100%{box-shadow:0 0 0 0 rgba(76,158,243,0)}}
+.node .label{
+  background:var(--color-white);border:1px solid var(--color-gray-m3);border-radius:9999px;
+  padding:4px var(--spacing-3);font-size:12px;font-weight:500;color:var(--color-gray-p2);
+  box-shadow:var(--shadow-down-100);white-space:nowrap;
+}
+.node.now .label{border-color:var(--color-blue-400);color:var(--color-blue-650);background:var(--color-blue-100)}
+
+/* ---- Progress bar (§5 ProgressBar) ---- */
+.progress{height:8px;border-radius:9999px;background:var(--color-gray-m4);overflow:hidden}
+.progress i{display:block;height:100%;border-radius:9999px;background:var(--gradient-blue-500);transition:width .6s ease}
+
+/* ---- Drawer / bottom sheet (§6 패턴 C) ---- */
+.overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:40;
+  display:none;align-items:flex-end;justify-content:center;
+}
+.overlay.is-open{display:flex;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.drawer{
+  width:100%;background:var(--color-white);border-radius:var(--radius-8) var(--radius-8) 0 0;
+  padding:var(--spacing-3) var(--spacing-4) var(--spacing-6);max-height:82%;overflow-y:auto;
+  animation:slideup .25s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.drawer .handle{width:44px;height:4px;border-radius:2px;background:var(--color-gray-m3);margin:0 auto var(--spacing-4)}
+
+/* ---- Toast (§5 ToastContainer) ---- */
+.toast{
+  position:absolute;left:50%;bottom:110px;transform:translate(-50%,12px);
+  background:var(--color-gray-p4);color:var(--color-white);
+  padding:var(--spacing-3) var(--spacing-4);border-radius:var(--radius-3);
+  font-size:14px;font-weight:500;z-index:60;opacity:0;pointer-events:none;transition:.25s ease;
+  box-shadow:var(--shadow-down-500);max-width:86%;text-align:center;
+}
+.toast.is-on{opacity:1;transform:translate(-50%,0)}
+
+/* ---- KO subtitle toggle (일본어 카피 한국어 병기) ---- */
+.ko-fab{
+  position:fixed;right:20px;bottom:20px;z-index:80;
+  background:var(--color-gray-p4);color:var(--color-white);
+  border-radius:9999px;padding:10px var(--spacing-4);font-size:13px;font-weight:600;
+  box-shadow:var(--shadow-down-500);
+}
+[data-ko]::after{
+  content:attr(data-ko);display:none;
+  font-size:11px;font-weight:400;line-height:1.5;color:var(--color-purple-700);
+  opacity:.9;margin-top:2px;letter-spacing:0;
+}
+body.ko-on [data-ko]::after{display:block}
+body.ko-on .bubble-user [data-ko]::after,
+body.ko-on .analysis [data-ko]::after,
+body.ko-on .btn-primary [data-ko]::after,
+body.ko-on .tab.is-on [data-ko]::after{color:rgba(255,255,255,.85)}
+body.ko-on .valueprop [data-ko]::after{color:var(--color-blue-650)}
+/* flex 컨테이너 자체에 data-ko가 붙으면 세로로 쌓이도록 */
+body.ko-on .chip,
+body.ko-on .badge,
+body.ko-on .btn{flex-direction:column;gap:0}
+body.ko-on .chip::after,
+body.ko-on .badge::after{font-size:10px}
+.hint{color:var(--color-gray-m1);text-align:center;max-width:520px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="stage-head">
+    <h1 class="t-h1" data-ko="소크라 튜터 · 일본판 프로토타입">Socra Tutor — 日本版プロトタイプ</h1>
+    <p class="t-body4-r hint" data-ko="탭·카드·버튼을 눌러보세요. 오른쪽 아래 KO 버튼으로 한국어 번역을 켤 수 있습니다.">タブ・カード・ボタンをタップして操作できます。</p>
+  </div>
+
+  <div class="phone" id="phone">
+    <!-- ===== status bar ===== -->
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="sb-right">▮▮▮ ᯤ 🔋</span>
+    </div>
+
+    <div class="body">
+
+      <!-- ================= 1. Q&A HOME ================= -->
+      <section class="screen is-active" data-screen="qa-home" data-tab="qa">
+        <div class="topbar">
+          <button class="tb-side ghost">☰</button>
+          <div class="tb-title t-h4" data-ko="질문">質問</div>
+          <button class="tb-side" data-toast="質問履歴は準備中です">🕘</button>
+        </div>
+        <div class="valueprop">
+          <span class="vp-num">1</span>
+          <p class="t-body5-m" style="margin:0" data-ko="궁금한 걸 질문하면 3회 검증된 답변을 받아요">疑問を質問して3回検証された回答をもらう</p>
+        </div>
+        <div class="scroll" style="display:flex;flex-direction:column">
+          <div class="empty">
+            <div class="cat">🐱</div>
+            <div class="empty-bubble t-body2-r" data-ko="공부하다 막혔나요?&#10;모르는 걸 물어보세요">勉強でつまずきましたか？<br>わからないことを聞いてみてください</div>
+          </div>
+          <div class="chiprow" style="padding-bottom:var(--spacing-2)">
+            <button class="chip primary" data-ask="二次関数の最大値の求め方がわかりません" data-ko="이차함수 최댓값">📐 二次関数の最大値</button>
+            <button class="chip" data-ask="英語の関係代名詞 which と that の違いを教えてください" data-ko="관계대명사 which/that">🔤 関係代名詞 which/that</button>
+            <button class="chip" data-ask="化学の酸化還元反応の見分け方を教えてください" data-ko="산화환원 반응">⚗️ 酸化還元反応</button>
+          </div>
+        </div>
+        <div class="composer">
+          <div class="composer-inner">
+            <button class="icon-btn" data-toast="カメラで問題を撮影（プロトタイプ）">📷</button>
+            <input id="qa-input" type="text" placeholder="わからない問題を入力してください">
+            <button class="icon-btn send" id="qa-send">↑</button>
+          </div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 2. Q&A CHAT ================= -->
+      <section class="screen" data-screen="qa-chat" data-tab="qa">
+        <div class="topbar">
+          <button class="tb-side" data-nav="qa-home">←</button>
+          <div class="tb-title t-h4" data-ko="3회 검증 답변">3回検証された回答</div>
+          <button class="tb-side" data-toast="この回答を保存しました">🔖</button>
+        </div>
+        <div class="scroll">
+          <div class="chatlog" id="chatlog"></div>
+        </div>
+        <div class="composer">
+          <div class="composer-inner">
+            <button class="icon-btn" data-toast="カメラで問題を撮影（プロトタイプ）">📷</button>
+            <input id="qa-input2" type="text" placeholder="続けて質問する">
+            <button class="icon-btn send" id="qa-send2">↑</button>
+          </div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 3. TUTORING HOME ================= -->
+      <section class="screen" data-screen="tutor-home" data-tab="tutor">
+        <div class="topbar">
+          <button class="tb-side ghost">☰</button>
+          <div class="tb-title t-h4" data-ko="가정교사">家庭教師</div>
+          <button class="tb-side" data-toast="お気に入りの先生一覧（準備中）">⭐</button>
+        </div>
+        <div class="valueprop">
+          <span class="vp-num">2</span>
+          <p class="t-body5-m" style="margin:0" data-ko="일본 명문대 선배들에게 과외를 받아요">トップレベル大学の先輩たちから家庭教師を受ける</p>
+        </div>
+        <div class="scroll">
+          <div class="sect">
+            <h2 class="t-h4" style="margin:0" data-ko="최근 연락한 일본 명문대 가정교사">最近連絡した家庭教師</h2>
+          </div>
+          <div class="pad" style="padding-top:0">
+            <div class="tutor-hero" data-nav="tutor-detail" data-tutor="tanaka" style="cursor:pointer">
+              <div style="display:flex;gap:var(--spacing-3);align-items:center">
+                <div class="avatar">🧑‍🎓<span class="uni">京</span></div>
+                <div style="flex:1;min-width:0">
+                  <div class="t-h4" data-ko="타나카 켄지">田中 健二</div>
+                  <div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="교토대학교 4학년 · 영어 전문">京都大学 4年 · 英語専門</div>
+                </div>
+                <span class="caret" style="color:var(--color-blue-650)">›</span>
+              </div>
+              <div class="tutor-tip t-body5-r">
+                <span class="badge badge-blue">TIP</span>
+                <span data-ko="리스닝 점수를 단기간에 올리는 법...">リスニング点数を短期間で上げる方法…</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sect">
+            <h2 class="t-h4" style="margin:0" data-ko="일본 명문대 가정교사 전체 목록">家庭教師の一覧</h2>
+            <span class="more" data-toast="全 128名の先生（プロトタイプ）">全 128名 ›</span>
+          </div>
+          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-3)">
+
+            <div class="tutor-item" data-nav="tutor-detail" data-tutor="suzuki">
+              <div class="avatar sm">👩‍🎓<span class="uni">東</span></div>
+              <div style="flex:1;min-width:0">
+                <div class="t-body2-m" data-ko="스즈키 아야카">鈴木 彩香</div>
+                <div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="도호쿠대학교 3학년 · 수학 전문">東北大学 3年 · 数学専門</div>
+                <div class="post"><span class="thumb">🖼</span><span data-ko="박서준: '집중력을 위한 …'">yuki: 「集中力を上げるための…」</span></div>
+              </div>
+              <span class="caret">›</span>
+            </div>
+
+            <div class="tutor-item" data-nav="tutor-detail" data-tutor="kurihara">
+              <div class="avatar sm">🧑‍🔬<span class="uni">名</span></div>
+              <div style="flex:1;min-width:0">
+                <div class="t-body2-m" data-ko="쿠리하라 코우타">栗原 航太</div>
+                <div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="나고야대학교 4학년 · 생물 전문">名古屋大学 4年 · 生物専門</div>
+                <div class="post"><span class="thumb">🖼</span><span data-ko="이지은: '집중력을 위한 …'">haru: 「集中力を上げるための…」</span></div>
+              </div>
+              <span class="caret">›</span>
+            </div>
+
+            <div class="tutor-item" data-nav="tutor-detail" data-tutor="nakamura">
+              <div class="avatar sm">👩‍🏫<span class="uni">北</span></div>
+              <div style="flex:1;min-width:0">
+                <div class="t-body2-m" data-ko="나카무라 유이">中村 結衣</div>
+                <div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="홋카이도대학교 3학년 · 국어 전문">北海道大学 3年 · 国語専門</div>
+                <div class="post"><span class="thumb">🖼</span><span data-ko="최우진: '집중력을 위한 …'">sora: 「集中力を上げるための…」</span></div>
+              </div>
+              <span class="caret">›</span>
+            </div>
+
+          </div>
+          <div style="height:var(--spacing-6)"></div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 4. TUTOR DETAIL ================= -->
+      <section class="screen" data-screen="tutor-detail" data-tab="tutor">
+        <div class="topbar">
+          <button class="tb-side" data-nav="tutor-home">←</button>
+          <div class="tb-title t-h4" data-ko="선생님 프로필">先生のプロフィール</div>
+          <button class="tb-side" data-toast="この先生をお気に入りに追加しました">⭐</button>
+        </div>
+        <div class="scroll">
+          <div class="pad" style="text-align:center">
+            <div class="avatar" id="td-avatar" style="width:88px;height:88px;font-size:40px;margin:var(--spacing-4) auto var(--spacing-3)">🧑‍🎓<span class="uni" id="td-uni">京</span></div>
+            <div class="t-h2" id="td-name">田中 健二</div>
+            <div class="t-body3-r" style="color:var(--color-gray-p1)" id="td-affil">京都大学 4年 · 英語専門</div>
+            <div style="display:flex;gap:var(--spacing-2);justify-content:center;margin-top:var(--spacing-3);flex-wrap:wrap">
+              <span class="badge badge-blue" id="td-tag1">英語</span>
+              <span class="badge badge-purple">⭐ 4.9</span>
+              <span class="badge badge-verified" data-ko="재학 인증">✓ 在学認証</span>
+            </div>
+          </div>
+
+          <div class="pad" style="padding-top:0">
+            <div class="card" style="display:flex;text-align:center">
+              <div style="flex:1">
+                <div class="t-h3" id="td-stat1">128</div>
+                <div class="t-caption2" style="color:var(--color-gray)" data-ko="누적 수업">累計授業</div>
+              </div>
+              <div style="width:1px;background:var(--color-gray-m4)"></div>
+              <div style="flex:1">
+                <div class="t-h3">97%</div>
+                <div class="t-caption2" style="color:var(--color-gray)" data-ko="재수강률">再受講率</div>
+              </div>
+              <div style="width:1px;background:var(--color-gray-m4)"></div>
+              <div style="flex:1">
+                <div class="t-h3" data-ko="5분">5分</div>
+                <div class="t-caption2" style="color:var(--color-gray)" data-ko="평균 응답">平均返信</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sect"><h3 class="t-h4" style="margin:0" data-ko="자기소개">自己紹介</h3></div>
+          <div class="pad" style="padding-top:0">
+            <p class="t-body3-r" id="td-intro" style="margin:0;color:var(--color-gray-p2)"></p>
+          </div>
+
+          <div class="sect"><h3 class="t-h4" style="margin:0" data-ko="선생님의 학습 팁">先生の学習TIP</h3></div>
+          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-2)">
+            <div class="card tappable" data-toast="TIP記事を開きました（プロトタイプ）">
+              <div class="t-body3-m" data-ko="리스닝 점수를 단기간에 올리는 법">リスニング点数を短期間で上げる方法</div>
+              <div class="t-body5-r" style="color:var(--color-gray)" data-ko="3일 전 · 조회 1,204">3日前 · 閲覧 1,204</div>
+            </div>
+            <div class="card tappable" data-toast="TIP記事を開きました（プロトタイプ）">
+              <div class="t-body3-m" data-ko="집중력을 위한 25분 루틴">集中力を上げるための25分ルーティン</div>
+              <div class="t-body5-r" style="color:var(--color-gray)" data-ko="1주 전 · 조회 3,880">1週間前 · 閲覧 3,880</div>
+            </div>
+          </div>
+
+          <div class="pad" style="display:flex;gap:var(--spacing-2)">
+            <button class="btn btn-line" style="flex:0 0 auto" data-toast="メッセージを送りました">💬</button>
+            <button class="btn btn-primary btn-block" data-sheet="sheet-book" data-ko="가정교사 신청하기">家庭教師を申し込む</button>
+          </div>
+          <div style="height:var(--spacing-4)"></div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 5. MISTAKE NOTE HOME ================= -->
+      <section class="screen" data-screen="mistake-home" data-tab="mistake">
+        <div class="topbar">
+          <button class="tb-side ghost">☰</button>
+          <div class="tb-title t-h4" data-ko="오답노트">間違いノート</div>
+          <button class="tb-side" data-toast="復習リマインダーをONにしました">🔔</button>
+        </div>
+        <div class="valueprop">
+          <span class="vp-num">3</span>
+          <p class="t-body5-m" style="margin:0" data-ko="틀린 문제를 모은 오답노트로 복습해요">間違えた問題をまとめた間違えノートで復習する</p>
+        </div>
+        <div class="scroll">
+          <div class="pad">
+            <div class="analysis">
+              <div class="a-title">
+                <span>✨</span>
+                <span class="t-h4" data-ko="[취약점 집중 분석 완료!]">［弱点集中分析 完了！］</span>
+                <span>✨</span>
+              </div>
+              <p class="t-body5-r" style="margin:0;opacity:.92" data-ko="과거의 실수를 반복하지 않도록, 이 문제들을 다시 한 번 확인하세요.">過去のミスを繰り返さないように、この問題たちをもう一度確認してください。</p>
+              <div style="margin-top:var(--spacing-3);display:flex;align-items:center;gap:var(--spacing-2)">
+                <div class="progress" style="flex:1;background:rgba(255,255,255,.35)"><i style="width:35%;background:var(--color-white)"></i></div>
+                <span class="t-caption1" data-ko="7/20 복습">7/20 復習</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chiprow" id="mistake-filter">
+            <button class="chip is-on" data-filter="all" data-ko="전체">全体 20</button>
+            <button class="chip" data-filter="english" data-ko="영어">英語 6</button>
+            <button class="chip" data-filter="math" data-ko="수학">数学 5</button>
+            <button class="chip" data-filter="japanese" data-ko="국어">国語 4</button>
+            <button class="chip" data-filter="science" data-ko="과학">科学 5</button>
+          </div>
+
+          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-3)" id="mistake-list">
+
+            <article class="mistake" data-subject="english" data-mistake="english">
+              <div class="m-head">
+                <span class="m-ico">🔤</span>
+                <div style="flex:1">
+                  <div class="t-body3-m" data-ko="영어 (독해)">英語（読解）</div>
+                </div>
+                <span class="badge badge-error" data-ko="D-5">D-5</span>
+              </div>
+              <div class="m-body t-body5-r">
+                <div class="kv"><span class="k" data-ko="문제">問題</span><span class="v" data-ko="영어 지문 빈칸 추론">英語長文の空所補充推論</span></div>
+                <div class="kv"><span class="k" data-ko="틀린 이유">間違えた理由</span><span class="v" data-ko="세부 정보 오독">細部情報の読み違い</span></div>
+                <div class="kv"><span class="k" data-ko="중요도">重要度</span><span class="v stars">★★★</span></div>
+              </div>
+            </article>
+
+            <article class="mistake" data-subject="math" data-mistake="math">
+              <div class="m-head">
+                <span class="m-ico">📐</span>
+                <div style="flex:1">
+                  <div class="t-body3-m" data-ko="수학 (미적분)">数学（微積分）</div>
+                </div>
+                <span class="badge badge-error" data-ko="D-5">D-5</span>
+              </div>
+              <div class="m-body t-body5-r">
+                <div class="kv"><span class="k" data-ko="문제">問題</span><span class="v" data-ko="미적분 공정 추론">微分係数の推論</span></div>
+                <div class="kv"><span class="k" data-ko="틀린 이유">間違えた理由</span><span class="v" data-ko="공식 적용 오류">公式の適用ミス</span></div>
+                <div class="kv"><span class="k" data-ko="중요도">重要度</span><span class="v stars">★★★</span></div>
+              </div>
+            </article>
+
+            <article class="mistake" data-subject="japanese" data-mistake="japanese">
+              <div class="m-head">
+                <span class="m-ico">📖</span>
+                <div style="flex:1">
+                  <div class="t-body3-m" data-ko="국어 (비문학)">国語（評論文）</div>
+                </div>
+                <span class="badge badge-coral" data-ko="D-7">D-7</span>
+              </div>
+              <div class="m-body t-body5-r">
+                <div class="kv"><span class="k" data-ko="문제">問題</span><span class="v" data-ko="필자의 주장 파악">筆者の主張の把握</span></div>
+                <div class="kv"><span class="k" data-ko="틀린 이유">間違えた理由</span><span class="v" data-ko="지문 근거 미확인">本文の根拠を未確認</span></div>
+                <div class="kv"><span class="k" data-ko="중요도">重要度</span><span class="v stars">★★</span></div>
+              </div>
+            </article>
+
+            <article class="mistake" data-subject="science" data-mistake="science">
+              <div class="m-head">
+                <span class="m-ico">⚛️</span>
+                <div style="flex:1">
+                  <div class="t-body3-m" data-ko="과학 (물리)">科学（物理）</div>
+                </div>
+                <span class="badge badge-yellow" data-ko="D-12">D-12</span>
+              </div>
+              <div class="m-body t-body5-r">
+                <div class="kv"><span class="k" data-ko="문제">問題</span><span class="v" data-ko="등가속도 운동">等加速度運動の計算</span></div>
+                <div class="kv"><span class="k" data-ko="틀린 이유">間違えた理由</span><span class="v" data-ko="단위 환산 실수">単位換算のミス</span></div>
+                <div class="kv"><span class="k" data-ko="중요도">重要度</span><span class="v stars">★★★</span></div>
+              </div>
+            </article>
+
+          </div>
+          <div style="height:var(--spacing-6)"></div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 6. MISTAKE DETAIL ================= -->
+      <section class="screen" data-screen="mistake-detail" data-tab="mistake">
+        <div class="topbar">
+          <button class="tb-side" data-nav="mistake-home">←</button>
+          <div class="tb-title t-h4" data-ko="오답 상세">間違いの詳細</div>
+          <button class="tb-side" data-toast="この問題を復習リストに追加しました">＋</button>
+        </div>
+        <div class="scroll">
+          <div class="pad">
+            <div style="display:flex;gap:var(--spacing-2);align-items:center;margin-bottom:var(--spacing-3)">
+              <span class="badge badge-blue" id="md-subject">英語（読解）</span>
+              <span class="badge badge-error" id="md-dday">D-5</span>
+              <span class="stars t-body5-m" id="md-stars">★★★</span>
+            </div>
+            <div class="card">
+              <div class="t-caption1" style="color:var(--color-gray)" data-ko="문제">問題</div>
+              <p class="t-body3-r" id="md-question" style="margin:var(--spacing-1) 0 0"></p>
+            </div>
+          </div>
+
+          <div class="pad" style="padding-top:0;display:flex;gap:var(--spacing-2)">
+            <div class="card" style="flex:1;background:var(--color-error-100);border-color:var(--color-error-300)">
+              <div class="t-caption1" style="color:var(--color-error-900)" data-ko="내 답">あなたの答え</div>
+              <div class="t-h4" id="md-mine" style="color:var(--color-error-900)">③</div>
+            </div>
+            <div class="card" style="flex:1;background:var(--color-green-100);border-color:var(--color-green-300)">
+              <div class="t-caption1" style="color:var(--color-green-900)" data-ko="정답">正解</div>
+              <div class="t-h4" id="md-answer" style="color:var(--color-green-900)">①</div>
+            </div>
+          </div>
+
+          <div class="sect"><h3 class="t-h4" style="margin:0" data-ko="AI 오답 분석">AIによる誤答分析</h3></div>
+          <div class="pad" style="padding-top:0">
+            <div class="agent">
+              <div class="agent-icon judge">AI</div>
+              <div class="bubble-ai t-body-chat" id="md-analysis"></div>
+            </div>
+          </div>
+
+          <div class="sect"><h3 class="t-h4" style="margin:0" data-ko="같은 유형 문제">同じタイプの問題</h3></div>
+          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-2)">
+            <div class="row card tappable" data-toast="類題を開きました（プロトタイプ）">
+              <span class="badge badge-gray">01</span>
+              <div class="row-main t-body4-m" data-ko="유사문제 1 · 난이도 중">類題 1 · 難易度 中</div>
+              <span class="caret">›</span>
+            </div>
+            <div class="row card tappable" data-toast="類題を開きました（プロトタイプ）">
+              <span class="badge badge-gray">02</span>
+              <div class="row-main t-body4-m" data-ko="유사문제 2 · 난이도 상">類題 2 · 難易度 高</div>
+              <span class="caret">›</span>
+            </div>
+          </div>
+
+          <div class="pad" style="display:flex;gap:var(--spacing-2)">
+            <button class="btn btn-ghost" style="flex:0 0 auto" data-toast="マスター済みにしました">✓</button>
+            <button class="btn btn-primary btn-block" data-sheet="sheet-retry" data-ko="다시 풀어보기">もう一度解く</button>
+          </div>
+          <div style="height:var(--spacing-4)"></div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 7. DAILY PATH HOME ================= -->
+      <section class="screen" data-screen="daily-home" data-tab="daily">
+        <div class="topbar">
+          <button class="tb-side ghost">☰</button>
+          <div class="tb-title t-h4" data-ko="데일리 학습">デイリー学習</div>
+          <button class="tb-side" data-toast="学習カレンダー（準備中）">📅</button>
+        </div>
+        <div class="valueprop">
+          <span class="vp-num">4</span>
+          <p class="t-body5-m" style="margin:0" data-ko="약점에 따라 처방된 나만의 데일리 학습지를 받아요">弱点に基づいて処方された自分だけのデイリー学習紙をもらう</p>
+        </div>
+        <div class="scroll">
+          <div class="chiprow" id="daily-filter">
+            <button class="chip is-on" data-subject="math" data-ko="수학">数学 ✏️</button>
+            <button class="chip" data-subject="english" data-ko="영어">英語 🔤</button>
+            <button class="chip" data-subject="japanese" data-ko="일본어">日本語 🇯🇵</button>
+            <button class="chip" data-subject="science" data-ko="과학">科学 🔬</button>
+            <button class="chip" data-subject="social" data-ko="사회">社会 🌏</button>
+          </div>
+
+          <div class="pad" style="padding-top:0">
+            <div class="unit-head">
+              <span>🎓</span>
+              <span class="t-body4-m" id="unit-title" data-ko="UNIT 1. 도쿄대생의 수학 3회독 법칙">UNIT 1. 東大生の数学3回読の法則</span>
+            </div>
+          </div>
+
+          <div class="path">
+            <div class="node done" data-step="s1">
+              <div class="circle">✓</div>
+              <div class="label" data-ko="1단계: 오답노트 뼈대 잡기">1段階：間違いノートの骨組み作り</div>
+            </div>
+            <div class="node done" data-step="s2">
+              <div class="circle">★</div>
+              <div class="label" data-ko="2단계: 킬러문항 15분 법칙">2段階：キラー問題15分の法則</div>
+            </div>
+            <div class="node now" data-step="s3">
+              <div class="circle">▶</div>
+              <div class="label" data-ko="오늘 날짜: [모] 2024.12.31">今日の日付：［模］2024.12.31</div>
+            </div>
+            <div class="node locked" data-step="s4">
+              <div class="circle">🔒</div>
+              <div class="label" data-ko="4단계: 실전 모의고사 리뷰">4段階：実戦模試のレビュー</div>
+            </div>
+            <div class="node reward" data-step="reward">
+              <div class="circle">🎁</div>
+              <div class="label" data-ko="보상: 사토 켄타 1:1 상담권">報酬：佐藤 健太 1:1相談券</div>
+            </div>
+          </div>
+          <div style="height:var(--spacing-4)"></div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+      <!-- ================= 8. DAILY WORKSHEET ================= -->
+      <section class="screen" data-screen="daily-sheet" data-tab="daily">
+        <div class="topbar">
+          <button class="tb-side" data-nav="daily-home">←</button>
+          <div class="tb-title t-h4" data-ko="오늘의 학습지">今日の学習紙</div>
+          <button class="tb-side" data-toast="PDFで保存しました">⤓</button>
+        </div>
+        <div class="scroll">
+          <div class="pad">
+            <div class="card" style="background:var(--gradient-blue-200);border-color:var(--color-blue-200)">
+              <div style="display:flex;align-items:center;gap:var(--spacing-2)">
+                <span class="badge badge-blue" data-ko="처방됨">処方済み</span>
+                <span class="t-caption2" style="color:var(--color-blue-650)">2024.12.31</span>
+              </div>
+              <div class="t-h3" style="margin-top:var(--spacing-1)" data-ko="미적분 · 취약 유형 6문항">微積分 · 弱点タイプ 6問</div>
+              <p class="t-body5-r" style="margin:var(--spacing-1) 0 var(--spacing-3);color:var(--color-blue-700)" data-ko="최근 오답 5개를 분석해 오늘 분량을 구성했어요. 예상 소요 22분.">直近の誤答5件を分析して今日の分量を構成しました。想定 22分。</p>
+              <div class="progress"><i id="ws-progress" style="width:0%"></i></div>
+              <div class="t-caption2" style="margin-top:6px;color:var(--color-blue-700)"><span id="ws-count">0</span> / 6</div>
+            </div>
+          </div>
+
+          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-2)" id="ws-list">
+            <div class="row card tappable ws-q"><span class="badge badge-gray">Q1</span><div class="row-main t-body4-m" data-ko="접선의 방정식 · 하">接線の方程式 · 易</div><span class="caret">›</span></div>
+            <div class="row card tappable ws-q"><span class="badge badge-gray">Q2</span><div class="row-main t-body4-m" data-ko="극값 판정 · 중">極値の判定 · 中</div><span class="caret">›</span></div>
+            <div class="row card tappable ws-q"><span class="badge badge-gray">Q3</span><div class="row-main t-body4-m" data-ko="정적분 넓이 · 중">定積分と面積 · 中</div><span class="caret">›</span></div>
+            <div class="row card tappable ws-q"><span class="badge badge-gray">Q4</span><div class="row-main t-body4-m" data-ko="속도와 가속도 · 중">速度と加速度 · 中</div><span class="caret">›</span></div>
+            <div class="row card tappable ws-q"><span class="badge badge-gray">Q5</span><div class="row-main t-body4-m" data-ko="치환적분 · 상">置換積分 · 難</div><span class="caret">›</span></div>
+            <div class="row card tappable ws-q"><span class="badge badge-gray">Q6</span><div class="row-main t-body4-m" data-ko="킬러문항 · 상">キラー問題 · 難</div><span class="caret">›</span></div>
+          </div>
+
+          <div class="pad">
+            <button class="btn btn-primary btn-block" data-sheet="sheet-done" data-ko="오늘 학습 완료하기">今日の学習を完了する</button>
+          </div>
+          <div style="height:var(--spacing-4)"></div>
+        </div>
+        <div class="tabbar"></div>
+      </section>
+
+    </div><!-- /.body -->
+
+    <!-- ================= Drawers (§6 패턴 C) ================= -->
+    <div class="overlay" id="overlay">
+      <div class="drawer" id="drawer"></div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div><!-- /.phone -->
+
+  <p class="t-body5-r hint" data-ko="화면 하단 탭으로 4개 핵심 기능을 이동할 수 있습니다. 디자인 토큰은 jp-prototype/design-system.md 기준.">Design tokens: jp-prototype/design-system.md (§1 Color · §2 Typography · §3 Shadow · §4 Spacing &amp; Radius)</p>
+</div><!-- /.stage -->
+
+<button class="ko-fab" id="ko-fab">KO 번역 ON</button>
+
+<script>
+/* =========================================================
+   Socra Tutor — 日本版クリッカブルプロトタイプ
+   ルーティング・状態はすべてクライアントのみ（静的HTML）
+   ========================================================= */
+(function(){
+  'use strict';
+
+  /* ---------- Bottom tab bar (§5 Figma Bottombar 未実装 → 独自実装) ---------- */
+  /* TODO: 컴포넌트 확인 — design-system.md §5 */
+  var TABS = [
+    {id:'qa',      screen:'qa-home',      icon:'💬', label:'質問',     ko:'질문'},
+    {id:'tutor',   screen:'tutor-home',   icon:'🎓', label:'家庭教師', ko:'가정교사'},
+    {id:'mistake', screen:'mistake-home', icon:'📝', label:'間違い',   ko:'오답노트'},
+    {id:'daily',   screen:'daily-home',   icon:'📅', label:'デイリー', ko:'데일리'}
+  ];
+
+  document.querySelectorAll('.tabbar').forEach(function(bar){
+    bar.innerHTML = TABS.map(function(t){
+      return '<button class="tab" data-tabid="'+t.id+'" data-nav="'+t.screen+'">'
+           +   '<span class="tab-ico">'+t.icon+'</span>'
+           +   '<span class="tab-label" data-ko="'+t.ko+'">'+t.label+'</span>'
+           + '</button>';
+    }).join('');
+  });
+
+  /* ---------- Router ---------- */
+  var screens = document.querySelectorAll('.screen');
+
+  function go(name){
+    var target = document.querySelector('.screen[data-screen="'+name+'"]');
+    if(!target) return;
+    screens.forEach(function(s){ s.classList.remove('is-active'); });
+    target.classList.add('is-active');
+    var tabId = target.getAttribute('data-tab');
+    target.querySelectorAll('.tab').forEach(function(tab){
+      tab.classList.toggle('is-on', tab.getAttribute('data-tabid') === tabId);
+    });
+    var sc = target.querySelector('.scroll');
+    if(sc) sc.scrollTop = 0;
+  }
+
+  /* ---------- Toast (§5 ToastContainer) ---------- */
+  var toastEl = document.getElementById('toast'), toastTimer;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('is-on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('is-on'); }, 1900);
+  }
+
+  /* ---------- Drawer (§5 Drawer / showDrawer) ---------- */
+  var overlay = document.getElementById('overlay');
+  var drawer  = document.getElementById('drawer');
+
+  var SHEETS = {
+    'sheet-book': function(){
+      var t = TUTORS[currentTutor] || TUTORS.tanaka;
+      return '<div class="handle"></div>'
+        + '<h3 class="t-h3" style="margin:0 0 var(--spacing-1)" data-ko="가정교사 신청">家庭教師の申し込み</h3>'
+        + '<p class="t-body4-r" style="margin:0 0 var(--spacing-4);color:var(--color-gray-p1)" data-ko="희망 수업을 선택하세요">'+t.name+' 先生の授業タイプを選んでください</p>'
+        + '<div style="display:flex;flex-direction:column;gap:var(--spacing-2)">'
+        +   opt('体験授業 30分', '無料', '체험수업 30분 · 무료')
+        +   opt('1:1 レギュラー 60分', '¥3,800', '1:1 정규수업 60분')
+        +   opt('質問チケット 10回', '¥2,400', '질문권 10회')
+        + '</div>'
+        + '<button class="btn btn-primary btn-block" style="margin-top:var(--spacing-4)" data-close data-toast="申し込みを送信しました。先生の返信をお待ちください。" data-ko="신청 보내기">申し込みを送る</button>';
+    },
+    'sheet-retry': function(){
+      return '<div class="handle"></div>'
+        + '<h3 class="t-h3" style="margin:0 0 var(--spacing-3)" data-ko="다시 풀기 방식 선택">解き直しの方法</h3>'
+        + '<div style="display:flex;flex-direction:column;gap:var(--spacing-2)">'
+        +   opt('同じ問題をもう一度', 'おすすめ', '같은 문제 다시')
+        +   opt('類題を3問', '5分', '유사문제 3문항')
+        +   opt('AIと対話しながら解く', '', 'AI와 대화하며 풀기')
+        + '</div>'
+        + '<button class="btn btn-primary btn-block" style="margin-top:var(--spacing-4)" data-close data-toast="復習セッションを開始しました" data-ko="시작하기">はじめる</button>';
+    },
+    'sheet-done': function(){
+      return '<div class="handle"></div>'
+        + '<div style="text-align:center;padding:var(--spacing-4) 0">'
+        +   '<div style="font-size:48px">🎉</div>'
+        +   '<h3 class="t-h2" style="margin:var(--spacing-2) 0 var(--spacing-1)" data-ko="오늘 학습 완료!">今日の学習 完了！</h3>'
+        +   '<p class="t-body4-r" style="margin:0;color:var(--color-gray-p1)" data-ko="연속 7일 달성 · 다음 보상까지 2일">連続7日達成 · 次の報酬まで あと2日</p>'
+        + '</div>'
+        + '<div class="card" style="background:var(--color-blue-100);border-color:var(--color-blue-200)">'
+        +   '<div class="t-body4-m" data-ko="내일의 처방">明日の処方</div>'
+        +   '<div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="치환적분 오답률이 높아 유사문제 4문항을 추가했어요.">置換積分の誤答率が高いため、類題を4問追加しました。</div>'
+        + '</div>'
+        + '<button class="btn btn-primary btn-block" style="margin-top:var(--spacing-4)" data-close data-nav="daily-home" data-ko="학습 경로로 돌아가기">学習パスに戻る</button>';
+    },
+    'sheet-step': function(){
+      var s = STEPS[currentStep] || STEPS.s3;
+      return '<div class="handle"></div>'
+        + '<span class="badge '+s.badgeClass+'">'+s.badge+'</span>'
+        + '<h3 class="t-h3" style="margin:var(--spacing-2) 0 var(--spacing-1)">'+s.title+'</h3>'
+        + '<p class="t-body4-r" style="margin:0 0 var(--spacing-4);color:var(--color-gray-p1)">'+s.desc+'</p>'
+        + s.extra
+        + '<button class="btn '+(s.locked?'btn-ghost':'btn-primary')+' btn-block" style="margin-top:var(--spacing-4)" '
+        +   (s.locked ? 'data-close data-toast="前の段階を完了すると解放されます"' : 'data-close data-nav="'+(s.nav||'daily-sheet')+'"')
+        + '>'+s.cta+'</button>';
+    }
+  };
+
+  function opt(title, meta, ko){
+    return '<button class="row card tappable" data-pick>'
+      +  '<div class="row-main t-body3-m" data-ko="'+(ko||'')+'">'+title+'</div>'
+      +  (meta ? '<span class="badge badge-blue">'+meta+'</span>' : '')
+      +  '<span class="caret">›</span>'
+      + '</button>';
+  }
+
+  function openSheet(key){
+    var build = SHEETS[key];
+    if(!build) return;
+    drawer.innerHTML = build();
+    overlay.classList.add('is-open');
+  }
+  function closeSheet(){ overlay.classList.remove('is-open'); }
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) closeSheet(); });
+
+  /* ---------- Tutor data ---------- */
+  var TUTORS = {
+    tanaka:{name:'田中 健二', uni:'京', emoji:'🧑‍🎓', affil:'京都大学 4年 · 英語専門', tag:'英語', lessons:'128',
+      intro:'京都大学で言語学を専攻しています。センター英語190点、TOEIC 950点。「訳す英語」ではなく「読める英語」に変わるまで、読解プロセスを一緒に分解していきます。'},
+    suzuki:{name:'鈴木 彩香', uni:'東', emoji:'👩‍🎓', affil:'東北大学 3年 · 数学専門', tag:'数学', lessons:'94',
+      intro:'東北大学理学部。数学が苦手だった経験があるからこそ、どこでつまずくのかがわかります。解法の暗記ではなく、答案を自分で組み立てる練習を重視します。'},
+    kurihara:{name:'栗原 航太', uni:'名', emoji:'🧑‍🔬', affil:'名古屋大学 4年 · 生物専門', tag:'生物', lessons:'76',
+      intro:'名古屋大学農学部。生物は暗記量が多く見えますが、実際は「つながり」で覚える科目です。図とストーリーで整理する方法をお伝えします。'},
+    nakamura:{name:'中村 結衣', uni:'北', emoji:'👩‍🏫', affil:'北海道大学 3年 · 国語専門', tag:'国語', lessons:'112',
+      intro:'北海道大学文学部。現代文は感覚ではなく手順です。本文の根拠に線を引き、選択肢を消す順番を固定するだけで安定して得点できます。'}
+  };
+  var currentTutor = 'tanaka';
+
+  function openTutor(id){
+    var t = TUTORS[id]; if(!t) return;
+    currentTutor = id;
+    document.getElementById('td-avatar').innerHTML = t.emoji + '<span class="uni">'+t.uni+'</span>';
+    document.getElementById('td-name').textContent = t.name;
+    document.getElementById('td-affil').textContent = t.affil;
+    document.getElementById('td-tag1').textContent = t.tag;
+    document.getElementById('td-stat1').textContent = t.lessons;
+    document.getElementById('td-intro').textContent = t.intro;
+    go('tutor-detail');
+  }
+
+  /* ---------- Mistake data ---------- */
+  var MISTAKES = {
+    english:{subject:'英語（読解）', dday:'D-5', stars:'★★★', mine:'③', answer:'①',
+      q:'次の英文の空所に入る最も適切なものを選びなさい。 The researchers concluded that the decline was ( ) caused by habitat loss rather than climate change.',
+      a:'空所の直前 rather than に注目できていません。ここは「気候変動ではなく生息地の喪失が主な原因」という対比構造なので、原因の強さを示す副詞が必要です。あなたが選んだ ③ は「部分的に」という意味で、対比を弱めてしまいます。段落最後の主張文と照合する習慣をつけましょう。'},
+    math:{subject:'数学（微積分）', dday:'D-5', stars:'★★★', mine:'②', answer:'④',
+      q:'関数 f(x)=x³-3x²+2 の x=2 における接線の方程式を求めなさい。',
+      a:'微分係数の計算自体は合っていますが、接点の y 座標を f(2) ではなく元の式の定数項で代用しています。接線は「傾き f\'(a)」と「通る点 (a, f(a))」の2つが揃って初めて決まります。次からは接点の座標を先に書き出してから傾きを求めてください。'},
+    japanese:{subject:'国語（評論文）', dday:'D-7', stars:'★★', mine:'④', answer:'②',
+      q:'傍線部「その前提そのものが問い直されている」とあるが、筆者はどのような前提を指しているか。',
+      a:'選択肢の言葉が本文と似ているだけで選んでしまっています。傍線部の「その」は直前の段落を受けているので、まず指示語の指す範囲を確定させることが先です。根拠となる一文に線を引いてから選択肢を比較しましょう。'},
+    science:{subject:'科学（物理）', dday:'D-12', stars:'★★★', mine:'①', answer:'③',
+      q:'初速度 5.0 m/s で動き出した物体が 2.0 m/s² で加速するとき、8.0 s 後の移動距離を求めなさい。',
+      a:'公式の選択は正しいのですが、加速度の項で時間を二乗していません。等加速度運動では x = v₀t + ½at² の t² を必ず確認してください。計算前に単位と次元をチェックする癖をつけると、この種のミスは消えます。'}
+  };
+
+  function openMistake(id){
+    var m = MISTAKES[id]; if(!m) return;
+    document.getElementById('md-subject').textContent = m.subject;
+    document.getElementById('md-dday').textContent = m.dday;
+    document.getElementById('md-stars').textContent = m.stars;
+    document.getElementById('md-question').textContent = m.q;
+    document.getElementById('md-mine').textContent = m.mine;
+    document.getElementById('md-answer').textContent = m.answer;
+    document.getElementById('md-analysis').textContent = m.a;
+    go('mistake-detail');
+  }
+
+  /* ---------- Daily path steps ---------- */
+  var STEPS = {
+    s1:{badge:'完了', badgeClass:'badge-verified', title:'1段階：間違いノートの骨組み作り',
+        desc:'誤答を「知識不足 / 手順ミス / 読み違い」の3タイプに分類し、復習の優先度をつけました。',
+        extra:'<div class="card"><div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="분류한 오답 20문항 · 정확도 92%">分類した誤答 20問 · 精度 92%</div></div>',
+        cta:'もう一度確認する', nav:'mistake-home'},
+    s2:{badge:'完了', badgeClass:'badge-verified', title:'2段階：キラー問題15分の法則',
+        desc:'難問に15分だけ集中して取り組み、解けなければ即座に解説へ進むトレーニングです。',
+        extra:'<div class="card"><div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="완료 12문항 · 평균 13분">完了 12問 · 平均 13分</div></div>',
+        cta:'記録を見る', nav:'daily-sheet'},
+    s3:{badge:'今日', badgeClass:'badge-blue', title:'今日の日付：［模］2024.12.31',
+        desc:'直近の誤答から処方された、あなただけの学習紙です。想定所要時間は22分。',
+        extra:'<div class="card" style="background:var(--color-blue-100);border-color:var(--color-blue-200)"><div class="t-body5-r" style="color:var(--color-blue-700)" data-ko="미적분 취약 유형 6문항">微積分 弱点タイプ 6問</div></div>',
+        cta:'今日の学習紙を開く', nav:'daily-sheet'},
+    s4:{badge:'ロック中', badgeClass:'badge-gray', title:'4段階：実戦模試のレビュー', locked:true,
+        desc:'3段階を完了すると解放されます。模試の結果をもとに次のUNITが処方されます。',
+        extra:'', cta:'まだ解放されていません'},
+    reward:{badge:'報酬', badgeClass:'badge-purple', title:'報酬：佐藤 健太 1:1相談券',
+        desc:'UNIT 1 をすべて完了すると、東大生メンターとの1:1相談券がもらえます。',
+        extra:'<div class="card" style="background:var(--color-purple-100);border-color:var(--color-purple-300)"><div class="t-body5-r" style="color:var(--color-purple-900)" data-ko="달성률 60% · 2단계 남음">達成率 60% · あと2段階</div></div>',
+        cta:'進捗を確認する', nav:'daily-home'}
+  };
+  var currentStep = 's3';
+
+  /* ---------- Q&A : 3回検証フロー ---------- */
+  var chatlog = document.getElementById('chatlog');
+  var chatBusy = false;
+
+  var ANSWERS = {
+    'default':{
+      draft:'二次関数 y=ax²+bx+c は、平方完成して y=a(x-p)²+q の形にすると、頂点 (p, q) がそのまま最大・最小になります。a<0 のとき頂点が最大値です。',
+      cross:'補足します。定義域に制限がある問題では、頂点が定義域の外に出ることがあります。その場合の最大値は「区間の端の値」です。ここを飛ばすと減点されます。',
+      final:'まず平方完成で頂点 (p, q) を求めます。\n① a<0 なら頂点が最大値、a>0 なら頂点は最小値。\n② 定義域に制限があるときは、頂点が定義域内かを必ず確認。\n③ 頂点が定義域の外なら、両端 x の値を代入して大きい方が最大値。\nこの3ステップの順番を固定すれば、入試レベルでも取りこぼしません。'
+    }
+  };
+
+  function el(html){
+    var d = document.createElement('div');
+    d.innerHTML = html.trim();
+    return d.firstElementChild;
+  }
+  function scrollChat(){
+    var sc = document.querySelector('.screen[data-screen="qa-chat"] .scroll');
+    if(sc) sc.scrollTop = sc.scrollHeight;
+  }
+
+  function ask(text){
+    if(chatBusy) return;
+    chatBusy = true;
+    go('qa-chat');
+
+    chatlog.appendChild(el(
+      '<div class="msg user"><div class="bubble-user t-body-chat">'+escapeHtml(text)+'</div></div>'
+    ));
+    scrollChat();
+
+    var verify = el(
+      '<div class="verify">'
+      + '<div class="v-head t-body5-m"><span>🔍</span><span data-ko="3회 교차 검증 중">3回クロス検証中</span><span class="loader-bounce"><i></i><i></i><i></i></span></div>'
+      + '<div class="vstep" data-v="1"><span class="dot">✓</span><span class="t-body5-r" data-ko="AI A가 1차 답변 생성">AI A が1次回答を作成</span></div>'
+      + '<div class="vstep" data-v="2"><span class="dot">✓</span><span class="t-body5-r" data-ko="AI B가 교차 검증">AI B がクロス検証</span></div>'
+      + '<div class="vstep" data-v="3"><span class="dot">✓</span><span class="t-body5-r" data-ko="최종 검수 후 정리">最終チェックして整理</span></div>'
+      + '</div>'
+    );
+    chatlog.appendChild(verify);
+    scrollChat();
+
+    var A = ANSWERS['default'];
+    var steps = verify.querySelectorAll('.vstep');
+
+    step(0);
+    function step(i){
+      if(i > 0){ steps[i-1].classList.remove('doing'); steps[i-1].classList.add('done'); }
+      if(i >= steps.length){ finish(); return; }
+      steps[i].classList.add('doing');
+      scrollChat();
+      setTimeout(function(){ step(i+1); }, i === 0 ? 900 : 1100);
+    }
+
+    function finish(){
+      verify.querySelector('.v-head').innerHTML =
+        '<span>✅</span><span class="t-body5-m" data-ko="3회 검증 완료">3回検証 完了</span>';
+
+      chatlog.appendChild(el(
+        '<div class="agent"><div class="agent-icon a">A</div><div class="bubble-ai t-body-chat">'
+        + '<div class="who"><span class="t-body5-m" data-ko="1차 답변">1次回答</span><span class="badge badge-gray">AI A</span></div>'
+        + escapeHtml(A.draft) + '</div></div>'
+      ));
+      chatlog.appendChild(el(
+        '<div class="agent"><div class="agent-icon b">B</div><div class="bubble-ai t-body-chat">'
+        + '<div class="who"><span class="t-body5-m" data-ko="교차 검증">クロス検証</span><span class="badge badge-gray">AI B</span></div>'
+        + escapeHtml(A.cross) + '</div></div>'
+      ));
+      chatlog.appendChild(el(
+        '<div class="agent"><div class="agent-icon judge">✓</div><div class="bubble-ai t-body-chat" style="background:var(--color-blue-100);border:1px solid var(--color-blue-200)">'
+        + '<div class="who"><span class="t-body5-m" data-ko="최종 답변">最終回答</span><span class="badge badge-verified" data-ko="3회 검증됨">✓ 3回検証済み</span></div>'
+        + escapeHtml(A.final).replace(/\n/g,'<br>')
+        + '<div style="display:flex;gap:var(--spacing-2);margin-top:var(--spacing-3)">'
+        +   '<button class="btn btn-sm btn-line" data-toast="間違いノートに保存しました" data-nav="mistake-home" data-ko="오답노트에 저장">📝 ノートに保存</button>'
+        +   '<button class="btn btn-sm btn-line" data-toast="先生に質問を転送しました" data-nav="tutor-home" data-ko="선생님에게 물어보기">🎓 先生に聞く</button>'
+        + '</div>'
+        + '</div></div>'
+      ));
+      scrollChat();
+      chatBusy = false;
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function sendFrom(inputId){
+    var input = document.getElementById(inputId);
+    var v = (input.value || '').trim();
+    if(!v){ toast('質問を入力してください'); input.focus(); return; }
+    input.value = '';
+    ask(v);
+  }
+  document.getElementById('qa-send').addEventListener('click', function(){ sendFrom('qa-input'); });
+  document.getElementById('qa-send2').addEventListener('click', function(){ sendFrom('qa-input2'); });
+  ['qa-input','qa-input2'].forEach(function(id){
+    document.getElementById(id).addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); sendFrom(id); }
+    });
+  });
+
+  /* ---------- Worksheet progress ---------- */
+  var wsDone = 0;
+  document.querySelectorAll('.ws-q').forEach(function(row){
+    row.addEventListener('click', function(){
+      if(row.classList.contains('is-done')) return;
+      row.classList.add('is-done');
+      row.style.opacity = '.55';
+      row.querySelector('.badge').className = 'badge badge-verified';
+      row.querySelector('.badge').textContent = '✓';
+      wsDone++;
+      document.getElementById('ws-count').textContent = wsDone;
+      document.getElementById('ws-progress').style.width = (wsDone/6*100)+'%';
+      toast(wsDone >= 6 ? '6問すべて完了しました！' : '正解！次の問題へ');
+    });
+  });
+
+  /* ---------- Global delegated click handling ---------- */
+  document.addEventListener('click', function(e){
+    var t;
+
+    /* drawer 내부 옵션 선택 */
+    t = e.target.closest('[data-pick]');
+    if(t){
+      drawer.querySelectorAll('[data-pick]').forEach(function(o){
+        o.style.borderColor = ''; o.style.background = '';
+      });
+      t.style.borderColor = 'var(--color-blue-500)';
+      t.style.background = 'var(--color-blue-100)';
+    }
+
+    /* sheet 열기 */
+    t = e.target.closest('[data-sheet]');
+    if(t){ openSheet(t.getAttribute('data-sheet')); return; }
+
+    /* sheet 닫기 */
+    if(e.target.closest('[data-close]')) closeSheet();
+
+    /* toast */
+    t = e.target.closest('[data-toast]');
+    if(t) toast(t.getAttribute('data-toast'));
+
+    /* tutor / mistake / step */
+    t = e.target.closest('[data-tutor]');
+    if(t){ openTutor(t.getAttribute('data-tutor')); return; }
+
+    t = e.target.closest('[data-mistake]');
+    if(t){ openMistake(t.getAttribute('data-mistake')); return; }
+
+    t = e.target.closest('.node');
+    if(t){ currentStep = t.getAttribute('data-step'); openSheet('sheet-step'); return; }
+
+    /* 질문 추천 칩 */
+    t = e.target.closest('[data-ask]');
+    if(t){ ask(t.getAttribute('data-ask')); return; }
+
+    /* 필터 칩 */
+    t = e.target.closest('#mistake-filter .chip');
+    if(t){
+      document.querySelectorAll('#mistake-filter .chip').forEach(function(c){ c.classList.remove('is-on'); });
+      t.classList.add('is-on');
+      var f = t.getAttribute('data-filter');
+      document.querySelectorAll('#mistake-list .mistake').forEach(function(card){
+        card.style.display = (f === 'all' || card.getAttribute('data-subject') === f) ? '' : 'none';
+      });
+      return;
+    }
+
+    t = e.target.closest('#daily-filter .chip');
+    if(t){
+      document.querySelectorAll('#daily-filter .chip').forEach(function(c){ c.classList.remove('is-on'); });
+      t.classList.add('is-on');
+      var titles = {
+        math:'UNIT 1. 東大生の数学3回読の法則',
+        english:'UNIT 1. 長文読解スピードを上げる法則',
+        japanese:'UNIT 1. 評論文の根拠マーキング法則',
+        science:'UNIT 1. 物理の公式導出3ステップ',
+        social:'UNIT 1. 歴史の因果関係マップ'
+      };
+      var kos = {
+        math:'UNIT 1. 도쿄대생의 수학 3회독 법칙',
+        english:'UNIT 1. 장문독해 속도 올리는 법칙',
+        japanese:'UNIT 1. 비문학 근거 표시 법칙',
+        science:'UNIT 1. 물리 공식 유도 3단계',
+        social:'UNIT 1. 역사 인과관계 맵'
+      };
+      var s = t.getAttribute('data-subject');
+      var ut = document.getElementById('unit-title');
+      ut.textContent = titles[s];
+      ut.setAttribute('data-ko', kos[s]);
+      return;
+    }
+
+    /* 화면 이동 (마지막에 처리 — 위 핸들러들이 우선) */
+    t = e.target.closest('[data-nav]');
+    if(t){ go(t.getAttribute('data-nav')); }
+  });
+
+  /* ---------- 한국어 병기 토글 ---------- */
+  var koFab = document.getElementById('ko-fab');
+  koFab.addEventListener('click', function(){
+    var on = document.body.classList.toggle('ko-on');
+    koFab.textContent = on ? 'KO 번역 OFF' : 'KO 번역 ON';
+  });
+
+  /* ---------- init ---------- */
+  go('qa-home');
+})();
+</script>
+</body>
+</html>
