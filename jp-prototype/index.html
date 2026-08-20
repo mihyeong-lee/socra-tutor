@@ -887,33 +887,14 @@ body.ko-on .badge::after{font-size:10px}
 
           <div class="pad" style="padding-top:0">
             <div class="unit-head">
-              <span>🎓</span>
-              <span class="t-body4-m" id="unit-title" data-ko="UNIT 1. 도쿄대생의 수학 3회독 법칙">UNIT 1. 東大生の数学3回読の法則</span>
+              <span>📅</span>
+              <span class="t-body4-m" id="unit-title" data-ko="">&nbsp;</span>
             </div>
           </div>
 
-          <div class="path">
-            <div class="node done" data-step="s1">
-              <div class="circle">✓</div>
-              <div class="label" data-ko="1단계: 오답노트 뼈대 잡기">1段階：間違いノートの骨組み作り</div>
-            </div>
-            <div class="node done" data-step="s2">
-              <div class="circle">★</div>
-              <div class="label" data-ko="2단계: 킬러문항 15분 법칙">2段階：キラー問題15分の法則</div>
-            </div>
-            <div class="node now" data-step="s3">
-              <div class="circle">▶</div>
-              <div class="label" data-ko="오늘 날짜: [모] 2024.12.31">今日の日付：［模］2024.12.31</div>
-            </div>
-            <div class="node locked" data-step="s4">
-              <div class="circle">🔒</div>
-              <div class="label" data-ko="4단계: 실전 모의고사 리뷰">4段階：実戦模試のレビュー</div>
-            </div>
-            <div class="node reward" data-step="reward">
-              <div class="circle">🎁</div>
-              <div class="label" data-ko="보상: 사토 켄타 1:1 상담권">報酬：佐藤 健太 1:1相談券</div>
-            </div>
-          </div>
+          <!-- 学習パス: 日付ごと・科目ごとに生成（JSで描画） -->
+          <div class="path" id="daily-path"></div>
+
           <div style="height:var(--spacing-4)"></div>
         </div>
         <div class="tabbar"></div>
@@ -923,7 +904,7 @@ body.ko-on .badge::after{font-size:10px}
       <section class="screen" data-screen="daily-sheet" data-tab="daily">
         <div class="topbar">
           <button class="tb-side" data-nav="daily-home">←</button>
-          <div class="tb-title t-h4" data-ko="오늘의 학습지">今日の学習紙</div>
+          <div class="tb-title t-h4" id="ws-topbar" data-ko="오늘의 학습지">今日の学習紙</div>
           <button class="tb-side" data-toast="PDFで保存しました">⤓</button>
         </div>
         <div class="scroll">
@@ -931,26 +912,19 @@ body.ko-on .badge::after{font-size:10px}
             <div class="card" style="background:var(--gradient-blue-200);border-color:var(--color-blue-200)">
               <div style="display:flex;align-items:center;gap:var(--spacing-2)">
                 <span class="badge badge-blue" data-ko="처방됨">処方済み</span>
-                <span class="t-caption2" style="color:var(--color-blue-650)">2024.12.31</span>
+                <span class="t-caption2" style="color:var(--color-blue-650)" id="ws-date">&nbsp;</span>
               </div>
-              <div class="t-h3" style="margin-top:var(--spacing-1)" data-ko="미적분 · 취약 유형 6문항">微積分 · 弱点タイプ 6問</div>
-              <p class="t-body5-r" style="margin:var(--spacing-1) 0 var(--spacing-3);color:var(--color-blue-700)" data-ko="최근 오답 5개를 분석해 오늘 분량을 구성했어요. 예상 소요 22분.">直近の誤答5件を分析して今日の分量を構成しました。想定 22分。</p>
+              <div class="t-h3" style="margin-top:var(--spacing-1)" id="ws-title" data-ko="">&nbsp;</div>
+              <p class="t-body5-r" style="margin:var(--spacing-1) 0 var(--spacing-3);color:var(--color-blue-700)" id="ws-desc" data-ko="">&nbsp;</p>
               <div class="progress"><i id="ws-progress" style="width:0%"></i></div>
               <div class="t-caption2" style="margin-top:6px;color:var(--color-blue-700)"><span id="ws-count">0</span> / 6</div>
             </div>
           </div>
 
-          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-2)" id="ws-list">
-            <div class="row card tappable ws-q"><span class="badge badge-gray">Q1</span><div class="row-main t-body4-m" data-ko="접선의 방정식 · 하">接線の方程式 · 易</div><span class="caret">›</span></div>
-            <div class="row card tappable ws-q"><span class="badge badge-gray">Q2</span><div class="row-main t-body4-m" data-ko="극값 판정 · 중">極値の判定 · 中</div><span class="caret">›</span></div>
-            <div class="row card tappable ws-q"><span class="badge badge-gray">Q3</span><div class="row-main t-body4-m" data-ko="정적분 넓이 · 중">定積分と面積 · 中</div><span class="caret">›</span></div>
-            <div class="row card tappable ws-q"><span class="badge badge-gray">Q4</span><div class="row-main t-body4-m" data-ko="속도와 가속도 · 중">速度と加速度 · 中</div><span class="caret">›</span></div>
-            <div class="row card tappable ws-q"><span class="badge badge-gray">Q5</span><div class="row-main t-body4-m" data-ko="치환적분 · 상">置換積分 · 難</div><span class="caret">›</span></div>
-            <div class="row card tappable ws-q"><span class="badge badge-gray">Q6</span><div class="row-main t-body4-m" data-ko="킬러문항 · 상">キラー問題 · 難</div><span class="caret">›</span></div>
-          </div>
+          <div class="pad" style="padding-top:0;display:flex;flex-direction:column;gap:var(--spacing-2)" id="ws-list"></div>
 
           <div class="pad">
-            <button class="btn btn-primary btn-block" data-sheet="sheet-done" data-ko="오늘 학습 완료하기">今日の学習を完了する</button>
+            <button class="btn btn-primary btn-block" id="ws-cta" data-sheet="sheet-done" data-ko="오늘 학습 완료하기">今日の学習を完了する</button>
           </div>
           <div style="height:var(--spacing-4)"></div>
         </div>
@@ -1057,20 +1031,22 @@ body.ko-on .badge::after{font-size:10px}
         +   '<p class="t-body4-r" style="margin:0;color:var(--color-gray-p1)" data-ko="연속 7일 달성 · 다음 보상까지 2일">連続7日達成 · 次の報酬まで あと2日</p>'
         + '</div>'
         + '<div class="card" style="background:var(--color-blue-100);border-color:var(--color-blue-200)">'
-        +   '<div class="t-body4-m" data-ko="내일의 처방">明日の処方</div>'
-        +   '<div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="치환적분 오답률이 높아 유사문제 4문항을 추가했어요.">置換積分の誤答率が高いため、類題を4問追加しました。</div>'
+        +   '<div class="t-body4-m" data-ko="'+koMD(addDays(TODAY,1))+' 학습지">'+jpMD(addDays(TODAY,1))+'の学習紙</div>'
+        +   '<div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="오늘 결과를 반영해 내일 아침 6시에 과목별로 자동 생성됩니다.">今日の結果を反映して、明日の朝6時に科目ごと自動生成されます。</div>'
         + '</div>'
         + '<button class="btn btn-primary btn-block" style="margin-top:var(--spacing-4)" data-close data-nav="daily-home" data-ko="학습 경로로 돌아가기">学習パスに戻る</button>';
     },
     'sheet-step': function(){
-      var s = STEPS[currentStep] || STEPS.s3;
+      var s = stepInfo(currentStep);
       return '<div class="handle"></div>'
         + '<span class="badge '+s.badgeClass+'">'+s.badge+'</span>'
         + '<h3 class="t-h3" style="margin:var(--spacing-2) 0 var(--spacing-1)">'+s.title+'</h3>'
         + '<p class="t-body4-r" style="margin:0 0 var(--spacing-4);color:var(--color-gray-p1)">'+s.desc+'</p>'
         + s.extra
         + '<button class="btn '+(s.locked?'btn-ghost':'btn-primary')+' btn-block" style="margin-top:var(--spacing-4)" '
-        +   (s.locked ? 'data-close data-toast="前の段階を完了すると解放されます"' : 'data-close data-nav="'+(s.nav||'daily-sheet')+'"')
+        +   (s.locked ? 'data-close data-toast="明日の朝6時に自動生成されます"'
+                        : 'data-close data-nav="'+(s.nav||'daily-sheet')+'"'
+                          + (typeof s.ws === 'number' ? ' data-ws="'+s.ws+'"' : ''))
         + '>'+s.cta+'</button>';
     }
   };
@@ -1145,29 +1121,192 @@ body.ko-on .badge::after{font-size:10px}
     go('mistake-detail');
   }
 
-  /* ---------- Daily path steps ---------- */
-  var STEPS = {
-    s1:{badge:'完了', badgeClass:'badge-verified', title:'1段階：間違いノートの骨組み作り',
-        desc:'誤答を「知識不足 / 手順ミス / 読み違い」の3タイプに分類し、復習の優先度をつけました。',
-        extra:'<div class="card"><div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="분류한 오답 20문항 · 정확도 92%">分類した誤答 20問 · 精度 92%</div></div>',
-        cta:'もう一度確認する', nav:'mistake-home'},
-    s2:{badge:'完了', badgeClass:'badge-verified', title:'2段階：キラー問題15分の法則',
-        desc:'難問に15分だけ集中して取り組み、解けなければ即座に解説へ進むトレーニングです。',
-        extra:'<div class="card"><div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="완료 12문항 · 평균 13분">完了 12問 · 平均 13分</div></div>',
-        cta:'記録を見る', nav:'daily-sheet'},
-    s3:{badge:'今日', badgeClass:'badge-blue', title:'今日の日付：［模］2024.12.31',
-        desc:'直近の誤答から処方された、あなただけの学習紙です。想定所要時間は22分。',
-        extra:'<div class="card" style="background:var(--color-blue-100);border-color:var(--color-blue-200)"><div class="t-body5-r" style="color:var(--color-blue-700)" data-ko="미적분 취약 유형 6문항">微積分 弱点タイプ 6問</div></div>',
-        cta:'今日の学習紙を開く', nav:'daily-sheet'},
-    s4:{badge:'ロック中', badgeClass:'badge-gray', title:'4段階：実戦模試のレビュー', locked:true,
-        desc:'3段階を完了すると解放されます。模試の結果をもとに次のUNITが処方されます。',
-        extra:'', cta:'まだ解放されていません'},
-    reward:{badge:'報酬', badgeClass:'badge-purple', title:'報酬：佐藤 健太 1:1相談券',
-        desc:'UNIT 1 をすべて完了すると、東大生メンターとの1:1相談券がもらえます。',
-        extra:'<div class="card" style="background:var(--color-purple-100);border-color:var(--color-purple-300)"><div class="t-body5-r" style="color:var(--color-purple-900)" data-ko="달성률 60% · 2단계 남음">達成率 60% · あと2段階</div></div>',
-        cta:'進捗を確認する', nav:'daily-home'}
+  /* ---------- Daily : 日付 × 科目でその日の学習紙が生成される ---------- */
+  var WD_JP = ['日','月','火','水','木','金','土'];
+  var WD_KO = ['일','월','화','수','목','금','토'];
+  var TODAY = new Date();
+
+  function addDays(base, n){
+    var d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+    d.setDate(d.getDate() + n);
+    return d;
+  }
+  function jpMD(d){ return (d.getMonth()+1)+'月'+d.getDate()+'日（'+WD_JP[d.getDay()]+'）'; }
+  function koMD(d){ return (d.getMonth()+1)+'월 '+d.getDate()+'일('+WD_KO[d.getDay()]+')'; }
+  function jpFull(d){ return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WD_JP[d.getDay()]+'）'; }
+  function dotDate(d){
+    var m = ('0'+(d.getMonth()+1)).slice(-2), day = ('0'+d.getDate()).slice(-2);
+    return d.getFullYear()+'.'+m+'.'+day;
+  }
+
+  /* 科目ごとの処方内容（毎日この形で1枚ずつ生成される想定） */
+  var SUBJECTS = {
+    math:{
+      jp:'数学', ko:'수학', icon:'✏️',
+      theme:'微積分・弱点タイプ', themeKo:'미적분 · 취약 유형',
+      desc:'直近の誤答5件を分析して今日の分量を構成しました。想定 22分。',
+      descKo:'최근 오답 5개를 분석해 오늘 분량을 구성했어요. 예상 소요 22분.',
+      qs:[['接線の方程式 · 易','접선의 방정식 · 하'],['極値の判定 · 中','극값 판정 · 중'],
+          ['定積分と面積 · 中','정적분 넓이 · 중'],['速度と加速度 · 中','속도와 가속도 · 중'],
+          ['置換積分 · 難','치환적분 · 상'],['キラー問題 · 難','킬러문항 · 상']]
+    },
+    english:{
+      jp:'英語', ko:'영어', icon:'🔤',
+      theme:'長文読解・空所補充', themeKo:'장문독해 · 빈칸추론',
+      desc:'昨日の誤答から「対比構造」の弱点を検出しました。想定 20分。',
+      descKo:'어제 오답에서 대비 구조 취약점을 찾았어요. 예상 소요 20분.',
+      qs:[['同義語の言い換え · 易','동의어 패러프레이즈 · 하'],['指示語の特定 · 中','지시어 파악 · 중'],
+          ['空所補充（対比）· 中','빈칸추론(대비) · 중'],['段落要約 · 中','단락 요약 · 중'],
+          ['筆者の主張 · 難','필자의 주장 · 상'],['キラー長文 · 難','킬러 장문 · 상']]
+    },
+    japanese:{
+      jp:'日本語', ko:'일본어', icon:'🇯🇵',
+      theme:'評論文・根拠マーキング', themeKo:'비문학 · 근거 표시',
+      desc:'根拠を確認せず選ぶ癖が続いています。想定 18分。',
+      descKo:'근거 확인 없이 고르는 습관이 이어지고 있어요. 예상 소요 18분.',
+      qs:[['漢字・語彙 · 易','한자/어휘 · 하'],['接続表現の判別 · 易','접속표현 판별 · 하'],
+          ['指示語の範囲 · 中','지시어 범위 · 중'],['筆者の主張 · 中','필자의 주장 · 중'],
+          ['対比の整理 · 難','대비 정리 · 상'],['キラー評論 · 難','킬러 평론 · 상']]
+    },
+    science:{
+      jp:'科学', ko:'과학', icon:'🔬',
+      theme:'物理・等加速度運動', themeKo:'물리 · 등가속도 운동',
+      desc:'単位換算のミスが3回続きました。想定 25分。',
+      descKo:'단위 환산 실수가 3회 반복됐어요. 예상 소요 25분.',
+      qs:[['単位換算 · 易','단위 환산 · 하'],['等加速度の公式 · 中','등가속도 공식 · 중'],
+          ['v-tグラフ読解 · 中','v-t 그래프 해석 · 중'],['力のつり合い · 中','힘의 평형 · 중'],
+          ['エネルギー保存 · 難','에너지 보존 · 상'],['キラー計算 · 難','킬러 계산 · 상']]
+    },
+    social:{
+      jp:'社会', ko:'사회', icon:'🌏',
+      theme:'歴史・因果関係の整理', themeKo:'역사 · 인과관계 정리',
+      desc:'年号は覚えていても流れで説明できていません。想定 20分。',
+      descKo:'연도는 외웠지만 흐름으로 설명하지 못하고 있어요. 예상 소요 20분.',
+      qs:[['年表の並べ替え · 易','연표 배열 · 하'],['用語の定義 · 易','용어 정의 · 하'],
+          ['原因と結果 · 中','원인과 결과 · 중'],['資料の読み取り · 中','자료 해석 · 중'],
+          ['比較記述 · 難','비교 서술 · 상'],['キラー論述 · 難','킬러 논술 · 상']]
+    }
   };
-  var currentStep = 's3';
+  var currentSubject = 'math';
+  var currentStep = 'd0';
+
+  /* 学習パス: 昨日までの学習紙 → 今日 → 明日 → 今週の報酬 */
+  var PATH_OFFSETS = [-2, -1, 0, 1];
+
+  function renderPath(){
+    var sub = SUBJECTS[currentSubject];
+    var html = PATH_OFFSETS.map(function(off){
+      var d = addDays(TODAY, off);
+      var state = off < 0 ? 'done' : (off === 0 ? 'now' : 'locked');
+      var icon  = off < 0 ? '✓'    : (off === 0 ? '▶'  : '🔒');
+      var jp = (off === 0 ? '今日 · ' : (off === 1 ? '明日 · ' : '')) + jpMD(d) + ' · ' + sub.jp;
+      var ko = (off === 0 ? '오늘 · ' : (off === 1 ? '내일 · ' : '')) + koMD(d) + ' · ' + sub.ko;
+      return '<div class="node '+state+'" data-step="d'+off+'">'
+           +   '<div class="circle">'+icon+'</div>'
+           +   '<div class="label" data-ko="'+ko+'">'+jp+'</div>'
+           + '</div>';
+    }).join('');
+    html += '<div class="node reward" data-step="reward">'
+         +    '<div class="circle">🎁</div>'
+         +    '<div class="label" data-ko="이번 주 보상: 사토 켄타 1:1 상담권">今週の報酬：佐藤 健太 1:1相談券</div>'
+         +  '</div>';
+    document.getElementById('daily-path').innerHTML = html;
+
+    var ut = document.getElementById('unit-title');
+    ut.textContent = jpFull(TODAY) + ' · ' + sub.jp + 'の学習紙';
+    ut.setAttribute('data-ko', TODAY.getFullYear()+'년 '+koMD(TODAY)+' · '+sub.ko+' 학습지');
+  }
+
+  /* 今日の学習紙（科目 × 日付で内容が変わる） */
+  var wsDone = 0;
+  var wsOffset = 0;
+  function renderWorksheet(off){
+    if(typeof off === 'number') wsOffset = off;
+    var sub = SUBJECTS[currentSubject];
+    var d = addDays(TODAY, wsOffset);
+    var past = wsOffset < 0;
+
+    var tb = document.getElementById('ws-topbar');
+    tb.textContent = past ? jpMD(d) + 'の学習紙' : '今日の学習紙';
+    tb.setAttribute('data-ko', past ? koMD(d) + ' 학습지' : '오늘의 학습지');
+
+    document.getElementById('ws-date').textContent = dotDate(d) + '（' + WD_JP[d.getDay()] + '）';
+
+    var title = document.getElementById('ws-title');
+    title.textContent = sub.theme + ' 6問';
+    title.setAttribute('data-ko', sub.themeKo + ' 6문항');
+
+    var desc = document.getElementById('ws-desc');
+    desc.textContent = past ? 'この日の学習は完了しています。誤答は間違いノートに送られました。' : sub.desc;
+    desc.setAttribute('data-ko', past ? '이 날의 학습은 완료됐어요. 오답은 오답노트로 넘어갔습니다.' : sub.descKo);
+
+    var cta = document.getElementById('ws-cta');
+    if(past){
+      cta.textContent = '間違いノートで復習する';
+      cta.setAttribute('data-ko', '오답노트에서 복습하기');
+      cta.removeAttribute('data-sheet');
+      cta.setAttribute('data-nav', 'mistake-home');
+    }else{
+      cta.textContent = '今日の学習を完了する';
+      cta.setAttribute('data-ko', '오늘 학습 완료하기');
+      cta.removeAttribute('data-nav');
+      cta.setAttribute('data-sheet', 'sheet-done');
+    }
+
+    document.getElementById('ws-list').innerHTML = sub.qs.map(function(q, i){
+      return '<div class="row card tappable ws-q">'
+           +   '<span class="badge badge-gray">Q'+(i+1)+'</span>'
+           +   '<div class="row-main t-body4-m" data-ko="'+q[1]+'">'+q[0]+'</div>'
+           +   '<span class="caret">›</span>'
+           + '</div>';
+    }).join('');
+
+    if(past){
+      /* 過去の学習紙はすでに完了済みの状態で表示 */
+      wsDone = 6;
+      document.getElementById('ws-list').querySelectorAll('.ws-q').forEach(function(row){
+        row.classList.add('is-done');
+        row.style.opacity = '.55';
+        var b = row.querySelector('.badge');
+        b.className = 'badge badge-verified';
+        b.textContent = '✓';
+      });
+    }else{
+      wsDone = 0;
+    }
+    document.getElementById('ws-count').textContent = wsDone;
+    document.getElementById('ws-progress').style.width = (wsDone/6*100)+'%';
+  }
+
+  /* パスのノードをタップしたときのボトムシート内容 */
+  function stepInfo(key){
+    var sub = SUBJECTS[currentSubject];
+    if(key === 'reward'){
+      return {badge:'報酬', badgeClass:'badge-purple', title:'今週の報酬：佐藤 健太 1:1相談券',
+        desc:'今週の学習紙をすべて完了すると、東大生メンターとの1:1相談券がもらえます。',
+        extra:'<div class="card" style="background:var(--color-purple-100);border-color:var(--color-purple-300)">'
+             +'<div class="t-body5-r" style="color:var(--color-purple-900)" data-ko="달성률 60% · 2일 남음">達成率 60% · あと2日</div></div>',
+        cta:'進捗を確認する', nav:'daily-home'};
+    }
+    var off = parseInt(key.slice(1), 10);
+    var d = addDays(TODAY, off);
+    if(off < 0){
+      return {badge:'完了', badgeClass:'badge-verified', title:jpFull(d)+' · '+sub.jp+'の学習紙',
+        desc:'この日の処方は完了しています。誤答はそのまま間違いノートに送られました。',
+        extra:'<div class="card"><div class="t-body5-r" style="color:var(--color-gray-p1)" data-ko="6문항 완료 · 정답률 83%">6問完了 · 正答率 83%</div></div>',
+        cta:'この日の学習紙を見る', nav:'daily-sheet', ws:off};
+    }
+    if(off === 0){
+      return {badge:'今日', badgeClass:'badge-blue', title:'今日 · '+jpFull(d)+' · '+sub.jp,
+        desc:'直近の誤答から処方された、今日だけの学習紙です。'+sub.desc,
+        extra:'<div class="card" style="background:var(--color-blue-100);border-color:var(--color-blue-200)">'
+             +'<div class="t-body5-r" style="color:var(--color-blue-700)" data-ko="'+sub.themeKo+' 6문항">'+sub.theme+' 6問</div></div>',
+        cta:'今日の学習紙を開く', nav:'daily-sheet', ws:0};
+    }
+    return {badge:'未生成', badgeClass:'badge-gray', title:jpFull(d)+' · '+sub.jp+'の学習紙', locked:true,
+      desc:'明日の学習紙は、今日の結果をもとに毎朝6時に自動生成されます。',
+      extra:'', cta:'まだ生成されていません'};
+  }
 
   /* ---------- Q&A : 3回検証フロー ---------- */
   var chatlog = document.getElementById('chatlog');
@@ -1274,20 +1413,19 @@ body.ko-on .badge::after{font-size:10px}
     });
   });
 
-  /* ---------- Worksheet progress ---------- */
-  var wsDone = 0;
-  document.querySelectorAll('.ws-q').forEach(function(row){
-    row.addEventListener('click', function(){
-      if(row.classList.contains('is-done')) return;
-      row.classList.add('is-done');
-      row.style.opacity = '.55';
-      row.querySelector('.badge').className = 'badge badge-verified';
-      row.querySelector('.badge').textContent = '✓';
-      wsDone++;
-      document.getElementById('ws-count').textContent = wsDone;
-      document.getElementById('ws-progress').style.width = (wsDone/6*100)+'%';
-      toast(wsDone >= 6 ? '6問すべて完了しました！' : '正解！次の問題へ');
-    });
+  /* ---------- Worksheet progress (동적 생성이라 이벤트 위임) ---------- */
+  document.getElementById('ws-list').addEventListener('click', function(e){
+    var row = e.target.closest('.ws-q');
+    if(!row || row.classList.contains('is-done')) return;
+    row.classList.add('is-done');
+    row.style.opacity = '.55';
+    var b = row.querySelector('.badge');
+    b.className = 'badge badge-verified';
+    b.textContent = '✓';
+    wsDone++;
+    document.getElementById('ws-count').textContent = wsDone;
+    document.getElementById('ws-progress').style.width = (wsDone/6*100)+'%';
+    toast(wsDone >= 6 ? '6問すべて完了しました！' : '正解！次の問題へ');
   });
 
   /* ---------- Global delegated click handling ---------- */
@@ -1345,26 +1483,15 @@ body.ko-on .badge::after{font-size:10px}
     if(t){
       document.querySelectorAll('#daily-filter .chip').forEach(function(c){ c.classList.remove('is-on'); });
       t.classList.add('is-on');
-      var titles = {
-        math:'UNIT 1. 東大生の数学3回読の法則',
-        english:'UNIT 1. 長文読解スピードを上げる法則',
-        japanese:'UNIT 1. 評論文の根拠マーキング法則',
-        science:'UNIT 1. 物理の公式導出3ステップ',
-        social:'UNIT 1. 歴史の因果関係マップ'
-      };
-      var kos = {
-        math:'UNIT 1. 도쿄대생의 수학 3회독 법칙',
-        english:'UNIT 1. 장문독해 속도 올리는 법칙',
-        japanese:'UNIT 1. 비문학 근거 표시 법칙',
-        science:'UNIT 1. 물리 공식 유도 3단계',
-        social:'UNIT 1. 역사 인과관계 맵'
-      };
-      var s = t.getAttribute('data-subject');
-      var ut = document.getElementById('unit-title');
-      ut.textContent = titles[s];
-      ut.setAttribute('data-ko', kos[s]);
+      currentSubject = t.getAttribute('data-subject');
+      renderPath();
+      renderWorksheet();
       return;
     }
+
+    /* 학습지 날짜 지정 */
+    t = e.target.closest('[data-ws]');
+    if(t) renderWorksheet(parseInt(t.getAttribute('data-ws'), 10));
 
     /* 화면 이동 (마지막에 처리 — 위 핸들러들이 우선) */
     t = e.target.closest('[data-nav]');
@@ -1379,6 +1506,8 @@ body.ko-on .badge::after{font-size:10px}
   });
 
   /* ---------- init ---------- */
+  renderPath();
+  renderWorksheet();
   go('qa-home');
 })();
 </script>
